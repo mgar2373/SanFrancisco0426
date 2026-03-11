@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="34" fill="#003DA5"/>
+  <circle cx="96" cy="80" r="54" fill="white" opacity="0.12"/>
+  <text x="96" y="100" font-family="Georgia, serif" font-size="62" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">E+</text>
+  <text x="96" y="158" font-family="Arial, sans-serif" font-size="17" font-weight="600" fill="rgba(255,255,255,0.75)" text-anchor="middle">MOBILITAT SF</text>
+</svg>

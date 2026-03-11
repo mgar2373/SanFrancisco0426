@@ -1,0 +1,43 @@
+{
+  "name": "Mobilitat SF 25-26 · Institut Serrallarga",
+  "short_name": "Mobilitat SF",
+  "description": "Projecte Erasmus+ KA121/KA131 — San Francisco abril 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#003DA5",
+  "theme_color": "#003DA5",
+  "orientation": "portrait-primary",
+  "lang": "ca",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Calendari",
+      "url": "/?tab=2",
+      "description": "Calendari del viatge"
+    },
+    {
+      "name": "Diari",
+      "url": "/?tab=5",
+      "description": "Diari col·laboratiu"
+    },
+    {
+      "name": "Pressupost",
+      "url": "/?tab=4",
+      "description": "Control de despeses"
+    }
+  ],
+  "categories": ["education", "productivity"]
+}
