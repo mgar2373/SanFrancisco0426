@@ -13,10 +13,13 @@ const C = {
 };
 
 export default function AuthModal({ onClose }) {
+  const INVITE_CODE = "Serrallarga2026"; // Canvia aquest codi quan vulguis
+
   const [mode, setMode] = useState("login"); // login | register | pending
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
@@ -32,6 +35,7 @@ export default function AuthModal({ onClose }) {
   const handleRegister = async () => {
     if (!name.trim()) { setError("Introdueix el teu nom."); return; }
     if (password.length < 6) { setError("La contrasenya ha de tenir mínim 6 caràcters."); return; }
+    if (inviteCode !== INVITE_CODE) { setError("Codi d'invitació incorrecte. Contacta amb l'administradora per obtenir-lo."); return; }
     setLoading(true); setError("");
     const err = await signUp(email, password, name);
     setLoading(false);
@@ -76,10 +80,17 @@ export default function AuthModal({ onClose }) {
               <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nom@exemple.com" style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
             </div>
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: mode === "register" ? 14 : 20 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Contrasenya</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínim 6 caràcters" onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleRegister())} style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
             </div>
+            {mode === "register" && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>🔑 Codi d'invitació</label>
+                <input value={inviteCode} onChange={e => setInviteCode(e.target.value)} placeholder="Demana'l a l'administradora" style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
+                <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Necessites un codi per registrar-te. Contacta amb mgar2373@xtec.cat</div>
+              </div>
+            )}
 
             {error && <div style={{ background: "#FEF2F2", border: `1px solid #FECACA`, borderRadius: 8, padding: "10px 14px", color: C.red, fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
