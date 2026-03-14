@@ -366,7 +366,7 @@ export default function App() {
   const visibleTabs = t.tabs.filter((_, i) => i !== 7 || canWrite);
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", flexDirection: "column" }}>
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -396,8 +396,6 @@ export default function App() {
         .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
         @media (max-width: 900px) { .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 600px) { .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; } }
-        @media (max-width: 600px) { .card { padding: 14px !important; } }
-        @media (max-width: 600px) { table { font-size: 11px !important; } }
         textarea { background: white; border: 1.5px solid ${C.border}; border-radius: 8px; padding: 8px 12px; color: ${C.text}; font-size: 13px; font-family: 'DM Sans', sans-serif; resize: vertical; }
         textarea:focus { outline: none; border-color: ${C.erasmus}; }
         hr { border: none; border-top: 1px solid ${C.border}; margin: 14px 0; }
@@ -410,7 +408,7 @@ export default function App() {
       <div style={{ position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 16px rgba(0,61,165,0.3)", background: `linear-gradient(135deg, ${C.erasmus} 0%, ${C.erasmusMid} 100%)` }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
           {/* Fila 1: logos esquerra · usuari dreta */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "28px 0 0", flexWrap: "wrap", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 0", flexWrap: "wrap", gap: 10 }}>
             <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
               <ErasmusLogo />
               <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.3)" }} />
@@ -446,11 +444,11 @@ export default function App() {
             </div>
           </div>
           {/* Fila 2: KA121/títol centrats */}
-          <div style={{ textAlign: "center", padding: "18px 0 20px" }}>
-            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, letterSpacing: 0.3, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+          <div style={{ textAlign: "center", padding: "5px 0 8px" }}>
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, letterSpacing: 0.3, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
               KA121 · 2025-1-ES01-KA121-VET-000315070 &nbsp;|&nbsp; KA131 · 2025-1-ES01-KA131-HED-000315070
             </div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: 17, marginTop: 5, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 15, marginTop: 2, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}>
               Mobilitat San Francisco 25-26 &nbsp;·&nbsp; 10–19 abril 2026
             </div>
           </div>
@@ -476,19 +474,9 @@ export default function App() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 12px", flexGrow: 1 }}>
-        {activeTab === 0 && <HomeTab t={t} />}
-        {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
-        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
-        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
-        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
-        {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
-        {activeTab === 6 && <EvalTab canWrite={canWrite} />}
-        {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
-      </div>
-
       {/* Footer */}
       <footer style={{ background: "#004494", marginTop: 40, padding: "0 28px", height: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
+        {/* Erasmus+ */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <div style={{ width: 44, height: 29, background: "#004494", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="38" height="25" viewBox="0 0 38 25"><rect width="38" height="25" fill="#004494" rx="2"/><g fill="#FFED00"><circle cx="19" cy="4.5" r="1.4"/><circle cx="24.5" cy="6" r="1.4"/><circle cx="27.5" cy="10.5" r="1.4"/><circle cx="26" cy="16" r="1.4"/><circle cx="22" cy="19.5" r="1.4"/><circle cx="16" cy="19.5" r="1.4"/><circle cx="12" cy="16" r="1.4"/><circle cx="10.5" cy="10.5" r="1.4"/><circle cx="13.5" cy="6" r="1.4"/></g></svg>
@@ -498,18 +486,35 @@ export default function App() {
             <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 8, letterSpacing: "0.8px" }}>PROGRAMME</div>
           </div>
         </div>
+
         <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+
+        {/* Eslògan */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Enriching lives, opening minds.</div>
           <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontStyle: "italic", marginTop: 2 }}>Co-funded by the European Union</div>
         </div>
+
         <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+
+        {/* Generalitat text */}
         <a href="https://agora.xtec.cat/iesserrallarga/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flexShrink: 0, lineHeight: 1.4 }}>
           <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 8, letterSpacing: "0.3px", textTransform: "uppercase" }}>Generalitat de Catalunya</div>
           <div style={{ color: "white", fontSize: 11, fontWeight: 700 }}>Departament d'Educació i Formació Professional</div>
           <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>Institut Serrallarga</div>
         </a>
       </footer>
+
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
+        {activeTab === 0 && <HomeTab t={t} />}
+        {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
+        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
+        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
+        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
+        {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
+        {activeTab === 6 && <EvalTab canWrite={canWrite} />}
+        {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
+      </div>
     </div>
   );
 }
@@ -560,9 +565,7 @@ function HomeTab({ t }) {
   return (
     <div>
       {/* Banner Golden Gate */}
-      <div style={{ width: "100%", height: 200, backgroundImage: "url('/GoldenGateBridge-001.jpg')", backgroundSize: "cover", backgroundPosition: "center 45%", borderRadius: 12, marginBottom: 24, overflow: "hidden", position: "relative", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,68,148,0.35) 0%, rgba(0,0,0,0) 50%, rgba(0,68,148,0.35) 100%)" }} />
-      </div>
+      <div style={{ width: "100%", height: 200, backgroundImage: "url('/GoldenGateBridge-001.jpg')", backgroundSize: "cover", backgroundPosition: "center 45%", borderRadius: 12, marginBottom: 24, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }} />
       {/* Top row: countdown + clocks */}
       <div className="grid-2" style={{ marginBottom: 24, gap: 20 }}>
         {/* Countdown */}
@@ -1463,7 +1466,7 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
       <div className="section-title">Taula de Tresoreria diària</div>
       <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>S'actualitza automàticament quan afegiu despeses. Valors en euros (€).</div>
       <div className="card shadow" style={{ padding: 0, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 500 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 700 }}>
           <thead>
             <tr style={{ background: C.erasmus }}>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, whiteSpace: "nowrap" }}>Dia</th>
