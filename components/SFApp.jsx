@@ -405,15 +405,16 @@ export default function App() {
       `}</style>
 
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${C.erasmus} 0%, ${C.erasmusMid} 100%)`, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 16px rgba(0,61,165,0.3)" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 16px rgba(0,61,165,0.3)", backgroundImage: "url('/GoldenGateBridge-001.jpg')", backgroundSize: "cover", backgroundPosition: "center 40%" }}>
+        {/* Overlay blau semitransparent colors Erasmus+ */}
+        <div style={{ background: "linear-gradient(to bottom, rgba(0,68,148,0.82) 0%, rgba(0,68,148,0.72) 60%, rgba(0,68,148,0.90) 100%)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
+          {/* Fila 1: logos esquerra · usuari dreta */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 0", flexWrap: "wrap", gap: 10 }}>
             <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
               <ErasmusLogo />
               <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.3)" }} />
               <SerrallargaLogo />
-              <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.3)" }} />
-              <DeptLogo />
               <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.3)" }} />
               {/* Language selector */}
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -428,14 +429,6 @@ export default function App() {
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, letterSpacing: 0.5 }}>
-                  KA121 · 2025-1-ES01-KA121-VET-000315070 &nbsp;|&nbsp; KA131 · 2025-1-ES01-KA131-HED-000315070
-                </div>
-                <div style={{ color: "white", fontWeight: 700, fontSize: 15, marginTop: 2 }}>
-                  Mobilitat San Francisco 25-26 &nbsp;·&nbsp; 10–19 abril 2026
-                </div>
-              </div>
               {/* Auth - person icon */}
               {user ? (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: 8 }}>
@@ -452,15 +445,22 @@ export default function App() {
               )}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 0, overflowX: "auto", marginTop: 4 }}>
-            {visibleTabs.map((tabLabel, i) => {
-              // Map visible tab index back to real tab index
-              const realIdx = canWrite ? i : (i < 7 ? i : i);
-              return (
-                <button key={i} className={`tab-btn ${activeTab === i ? "active" : ""}`} onClick={() => setActiveTab(i)}>{tabLabel}</button>
-              );
-            })}
+          {/* Fila 2: KA121/títol centrats */}
+          <div style={{ textAlign: "center", padding: "5px 0 8px" }}>
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, letterSpacing: 0.3, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+              KA121 · 2025-1-ES01-KA121-VET-000315070 &nbsp;|&nbsp; KA131 · 2025-1-ES01-KA131-HED-000315070
+            </div>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 15, marginTop: 2, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}>
+              Mobilitat San Francisco 25-26 &nbsp;·&nbsp; 10–19 abril 2026
+            </div>
           </div>
+          {/* Pestanyes */}
+          <div style={{ display: "flex", gap: 0, overflowX: "auto", marginTop: 0 }}>
+            {visibleTabs.map((tabLabel, i) => (
+              <button key={i} className={`tab-btn ${activeTab === i ? "active" : ""}`} onClick={() => setActiveTab(i)}>{tabLabel}</button>
+            ))}
+          </div>
+        </div>
         </div>
       </div>
 
@@ -476,6 +476,37 @@ export default function App() {
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+
+      {/* Footer */}
+      <footer style={{ background: "#004494", marginTop: 40, padding: "0 28px", height: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
+        {/* Erasmus+ */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div style={{ width: 44, height: 29, background: "#004494", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="38" height="25" viewBox="0 0 38 25"><rect width="38" height="25" fill="#004494" rx="2"/><g fill="#FFED00"><circle cx="19" cy="4.5" r="1.4"/><circle cx="24.5" cy="6" r="1.4"/><circle cx="27.5" cy="10.5" r="1.4"/><circle cx="26" cy="16" r="1.4"/><circle cx="22" cy="19.5" r="1.4"/><circle cx="16" cy="19.5" r="1.4"/><circle cx="12" cy="16" r="1.4"/><circle cx="10.5" cy="10.5" r="1.4"/><circle cx="13.5" cy="6" r="1.4"/></g></svg>
+          </div>
+          <div>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 13, lineHeight: 1.1 }}>Erasmus+</div>
+            <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 8, letterSpacing: "0.8px" }}>PROGRAMME</div>
+          </div>
+        </div>
+
+        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+
+        {/* Eslògan */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Enriching lives, opening minds.</div>
+          <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontStyle: "italic", marginTop: 2 }}>Co-funded by the European Union</div>
+        </div>
+
+        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+
+        {/* Generalitat text */}
+        <a href="https://agora.xtec.cat/iesserrallarga/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flexShrink: 0, lineHeight: 1.4 }}>
+          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 8, letterSpacing: "0.3px", textTransform: "uppercase" }}>Generalitat de Catalunya</div>
+          <div style={{ color: "white", fontSize: 11, fontWeight: 700 }}>Departament d'Educació i Formació Professional</div>
+          <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>Institut Serrallarga</div>
+        </a>
+      </footer>
 
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
         {activeTab === 0 && <HomeTab t={t} />}
