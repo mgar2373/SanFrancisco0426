@@ -474,6 +474,25 @@ export default function App() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
+        {activeTab === 0 && <HomeTab t={t} />}
+        {activeTab === 1 && canWrite && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
+        {activeTab === 1 && !canWrite && (
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>🔒</div>
+            <div style={{ fontFamily: "DM Serif Display", fontSize: 24, color: C.erasmus, marginBottom: 10 }}>Contingut privat</div>
+            <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>El CRM de contactes és accessible només per als usuaris autoritzats.</div>
+            <button onClick={() => setShowAuth(true)} className="btn">Iniciar sessió</button>
+          </div>
+        )}
+        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
+        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
+        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
+        {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
+        {activeTab === 6 && <EvalTab canWrite={canWrite} />}
+        {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
+      </div>
+
       {/* Footer */}
       <footer style={{ background: "#004494", marginTop: 40, padding: "0 28px", height: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
         {/* Erasmus+ */}
@@ -504,17 +523,6 @@ export default function App() {
           <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>Institut Serrallarga</div>
         </a>
       </footer>
-
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
-        {activeTab === 0 && <HomeTab t={t} />}
-        {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
-        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
-        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
-        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
-        {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
-        {activeTab === 6 && <EvalTab canWrite={canWrite} />}
-        {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
-      </div>
     </div>
   );
 }
