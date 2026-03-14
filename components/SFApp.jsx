@@ -570,8 +570,8 @@ function HomeTab({ t, canWrite }) {
   const blanesLabel = blanesOff === 2 ? "🇪🇸 Blanes (CEST)" : "🇪🇸 Blanes (CET)";
 
   // Comptador de visites
-  const [visits, setVisits] = React.useState(null);
-  React.useEffect(() => {
+  const [visits, setVisits] = useState(null);
+  useEffect(() => {
     const track = async () => {
       try {
         const r = await window.storage.get("sf2-visits", true);
