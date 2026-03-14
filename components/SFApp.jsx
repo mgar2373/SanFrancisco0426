@@ -366,7 +366,7 @@ export default function App() {
   const visibleTabs = t.tabs.filter((_, i) => i !== 7 || canWrite);
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", flexDirection: "column" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -410,7 +410,7 @@ export default function App() {
         <div style={{ background: "linear-gradient(to bottom, rgba(0,68,148,0.75) 0%, rgba(0,68,148,0.60) 50%, rgba(0,68,148,0.80) 100%)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
           {/* Fila 1: logos esquerra · usuari dreta */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 0", flexWrap: "wrap", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "28px 0 0", flexWrap: "wrap", gap: 10 }}>
             <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
               <ErasmusLogo />
               <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.3)" }} />
@@ -446,11 +446,11 @@ export default function App() {
             </div>
           </div>
           {/* Fila 2: KA121/títol centrats */}
-          <div style={{ textAlign: "center", padding: "5px 0 8px" }}>
-            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11, letterSpacing: 0.3, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+          <div style={{ textAlign: "center", padding: "18px 0 20px" }}>
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, letterSpacing: 0.3, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
               KA121 · 2025-1-ES01-KA121-VET-000315070 &nbsp;|&nbsp; KA131 · 2025-1-ES01-KA131-HED-000315070
             </div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: 15, marginTop: 2, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 17, marginTop: 5, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}>
               Mobilitat San Francisco 25-26 &nbsp;·&nbsp; 10–19 abril 2026
             </div>
           </div>
@@ -477,7 +477,7 @@ export default function App() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 20px" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 20px", flexGrow: 1 }}>
         {activeTab === 0 && <HomeTab t={t} />}
         {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
         {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
