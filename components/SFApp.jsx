@@ -405,9 +405,9 @@ export default function App() {
       `}</style>
 
       {/* Header */}
-      <div style={{ position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 16px rgba(0,61,165,0.3)", backgroundImage: "url('/GoldenGateBridge-001.jpg')", backgroundSize: "cover", backgroundPosition: "center 40%" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 16px rgba(0,61,165,0.3)", backgroundImage: "url('/GoldenGateBridge-001.jpg')", backgroundSize: "cover", backgroundPosition: "center 55%" }}>
         {/* Overlay blau semitransparent colors Erasmus+ */}
-        <div style={{ background: "linear-gradient(to bottom, rgba(0,68,148,0.82) 0%, rgba(0,68,148,0.72) 60%, rgba(0,68,148,0.90) 100%)" }}>
+        <div style={{ background: "linear-gradient(to bottom, rgba(0,68,148,0.75) 0%, rgba(0,68,148,0.60) 50%, rgba(0,68,148,0.80) 100%)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
           {/* Fila 1: logos esquerra · usuari dreta */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0 0", flexWrap: "wrap", gap: 10 }}>
@@ -508,7 +508,7 @@ export default function App() {
         </a>
       </footer>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 20px" }}>
         {activeTab === 0 && <HomeTab t={t} />}
         {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
         {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
