@@ -396,6 +396,8 @@ export default function App() {
         .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
         @media (max-width: 900px) { .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 600px) { .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .card { padding: 14px !important; } }
+        @media (max-width: 600px) { table { font-size: 11px !important; } }
         textarea { background: white; border: 1.5px solid ${C.border}; border-radius: 8px; padding: 8px 12px; color: ${C.text}; font-size: 13px; font-family: 'DM Sans', sans-serif; resize: vertical; }
         textarea:focus { outline: none; border-color: ${C.erasmus}; }
         hr { border: none; border-top: 1px solid ${C.border}; margin: 14px 0; }
@@ -474,7 +476,7 @@ export default function App() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 20px", flexGrow: 1 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 12px", flexGrow: 1 }}>
         {activeTab === 0 && <HomeTab t={t} />}
         {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
         {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
@@ -1461,7 +1463,7 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
       <div className="section-title">Taula de Tresoreria diària</div>
       <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>S'actualitza automàticament quan afegiu despeses. Valors en euros (€).</div>
       <div className="card shadow" style={{ padding: 0, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 700 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 500 }}>
           <thead>
             <tr style={{ background: C.erasmus }}>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, whiteSpace: "nowrap" }}>Dia</th>
