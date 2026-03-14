@@ -60,10 +60,11 @@ const INITIAL_CONTACTS = [
   { id: 20, name: "Mary Karam McKey", institution: "IIE – Institute of International Education (Nova York)", email: "MMckey@iie.org", phone: "", sentDate: "2026-01-13", status: "En procés 🔄", lastContact: "2026-02-23", notes: "Program Officer a IIE (Institute of International Education). Primera resposta positiva (21/01): 'we would welcome the opportunity to reconnect in the future, should circumstances allow.' Conversa activa fins a 23/02. Ha mostrat interès en explorar col·laboració futura. Seu: 1 E 67th St, New York, NY." },
   { id: 21, name: "Shawn Dillard", institution: "University of San Francisco (USF) – Program Director, Immersions", email: "sdillard1@usfca.edu", phone: "(415) 422-6848", sentDate: "2026-01-14", status: "En procés 🔄", lastContact: "2026-01-22", notes: "Program Director d'Immersions i Short-term Programs a USF. Va respondre (22/01) mostrant disponibilitat d'ajuda. Programa Global Immersions. Pendent de confirmar visita/reunió durant la setmana del 13–17 abril." },
   { id: 22, name: "Shelby Schoppet-Panzarini", institution: "Silicon Valley Education Foundation (SVeF) – Associate Director STEM", email: "shelby@svefoundation.org", phone: "408-790-9479", sentDate: "2026-02-24", status: "Redirigit ↗️", lastContact: "2026-03-03", notes: "Associate Director of STEM Programs a SVeF (Sobrato Center for Nonprofits, 1400 Parkmoor Ave, Suite 200, San Jose, CA 95126). Va declinar visita (27/02): 'we don't have the bandwidth to add another meeting.' Organització notable per futures col·laboracions." },
-  { id: 23, name: "Jennifer Brook Beltz", institution: "De Anza College / FHDA – International Programs", email: "brookjennifer@fhda.edu", phone: "", sentDate: "2026-01-21", status: "En procés 🔄", lastContact: "2026-03-09", notes: "International Programs a Foothill-De Anza College District (FHDA). Va fer follow-up (27/01) i continua la conversa fins 09/03. Pendent de confirmar si és possible visita durant la setmana del viatge. De Anza College: 21250 Stevens Creek Blvd, Cupertino, CA 95014." },
+  { id: 23, name: "Jennifer Brook Beltz", institution: "Foothill + De Anza Colleges (FHDA) – Executive Director International Programs", email: "brookjennifer@fhda.edu", phone: "", sentDate: "2026-01-21", status: "Confirmat ✅", lastContact: "2026-03-13", notes: "Executive Director of International Student Programs a Foothill i De Anza Colleges (FHDA). Primera resposta positiva (27/01): disposada a explorar visita i va consultar amb col·legues. Follow-up enviat 09/03. Ha derivat a Marilyn Cheung (Directora de Recruitment) per organitzar la visita. Adreça: 12345 El Monte Road, Los Altos Hills, CA 94022. Web: http://international.fhda.edu" },
+  { id: 30, name: "Marilyn Cheung", institution: "Foothill + De Anza Colleges (FHDA) – Director International Recruitment & Partner Relations", email: "cheungm@fhda.edu", phone: "+1 (650) 949-7482", sentDate: "2026-03-13", status: "Confirmat ✅", lastContact: "2026-03-13", notes: "Directora de International Student Recruitment and Partner Relations a FHDA. Va contactar (13/03) per organitzar la visita: 'I will be arranging your visit.' Ha contactat un administrador per als programes CTE i workforce development. Prepararà un programa de visita un cop rebi resposta. VISITA EN PROCÉS DE CONFIRMACIÓ per la setmana del 13–17 abril. Adreça: 12345 El Monte Road, Los Altos Hills, CA 94022." },
   { id: 24, name: "Terri Eppley", institution: "West Valley College – International Programs", email: "Terri.Eppley@westvalley.edu", phone: "", sentDate: "2026-02-22", status: "Pendent ⏳", lastContact: "2026-02-22", notes: "Contacte a West Valley College (Saratoga, CA). Va respondre amb autoreply (22/02) indicant ausència temporal. Pendent de resposta efectiva. West Valley College: 14000 Fruitvale Ave, Saratoga, CA 95070." },
   { id: 25, name: "CCSF Outreach & Recruitment", institution: "City College of San Francisco – Campus Tour", email: "outreach@ccsf.edu", phone: "", sentDate: "2026-01-20", status: "Confirmat ✅", lastContact: "2026-03-02", notes: "Campus Tour Ocean Campus CONFIRMAT via Calendly (02/03/26). Data: dimecres 15 d'abril 2026, 14:15h (PDT). Punt de trobada: Student Success Center, 50 Frida Kahlo Way, SF 94112 (cantonada Ocean Ave). Durada: 45 min – 1h15min. Arribar 5–10 min abans. Contactar per aparcament si cal." },
-  { id: 26, name: "UC Berkeley Visitor Services", institution: "University of California Berkeley – Campus Walking Tour", email: "tour@berkeley.edu", phone: "", sentDate: "2026-03-02", status: "Confirmat ✅", lastContact: "2026-03-02", notes: "Walking Tour de campus confirmat via reserva online (02/03/26). Data per confirmar. Inici tour: Visitor Services Center, 2227 Piedmont Ave, Berkeley CA 94720. Web: visit.berkeley.edu. Fer fotos! Campus de gran bellesa." },
+  { id: 26, name: "UC Berkeley Visitor Services", institution: "University of California Berkeley – Campus Walking Tour", email: "tour@berkeley.edu", phone: "510-642-5215", sentDate: "2026-03-02", status: "Confirmat ✅", lastContact: "2026-03-02", notes: "Campus Walking Tour CONFIRMAT. Data: dilluns 13 d'abril 2026, 09:30h–11:00h. Punt de trobada: Koret Visitor Center, Goldman Plaza, California Memorial Stadium (2207 Piedmont Ave, Berkeley CA 94704). Final: Sproul Plaza. Grup de 5 persones. Confirmació núm: 414071. IMPORTANT: arribar 15 min abans (09:15h). El tour surt en punt. Si cal cancel·lar o canviar nombre de persones: tour@berkeley.edu. BART: baixar a Downtown Berkeley station (25-30 min a peu fins al Visitor Center)." },
   { id: 27, name: "Spartans Abroad / SJSU", institution: "San José State University – International Programs (Spartans Abroad)", email: "spartansabroad@sjsu.edu", phone: "", sentDate: "2026-01-13", status: "En procés 🔄", lastContact: "2026-01-28", notes: "Contacte internacional de SJSU (San José State University). Va respondre (28/01) indicant disposició a explorar col·laboració: 'we would welcome the opportunity to reconnect in the future.' Conversa activa fins 28/01. Pendent de seguiment per confirmar visita o reunió." },
   { id: 28, name: "Metropolitan Education District", institution: "Silicon Valley CTE – Metropolitan Education District", email: "formsubmissions@catapultcms.com", phone: "", sentDate: "2026-02-03", status: "En procés 🔄", lastContact: "2026-03-08", notes: "Formulari de sol·licitud Job Shadowing enviat al Metropolitan Education District – Staff Directory (03/02/26). Rebut confirmació de rebuda del formulari. Seguiment el 08/03. Organitzen programes CTE (Career Technical Education) per a estudiants del Silicon Valley." },
   { id: 29, name: "Palo Alto Adult School", institution: "Palo Alto Adult School – International / CTE", email: "adultschool@pausd.org", phone: "", sentDate: "2026-03-09", status: "Pendent ⏳", lastContact: "2026-03-09", notes: "Correu de sol·licitud de Job Shadowing enviat el 09/03/26. Pendent de resposta. Palo Alto Adult School ofereix programes d'educació d'adults i formació professional a Palo Alto, CA." },
@@ -81,7 +82,9 @@ const FLIGHT_EVENTS = [
   { date: "2026-04-18", time: "18:43", title: "🛬 Arribada Chicago – escala 2h57m", type: "flight" },
   { date: "2026-04-18", time: "21:40", title: "✈️ Sortida Chicago → BCN Terminal 1 (UA769 op. United)", type: "flight" },
   { date: "2026-04-19", time: "13:15", title: "🏠 Arribada BCN Terminal 1", type: "arrive" },
+  { date: "2026-04-13", time: "09:30", title: "🎓 Campus Walking Tour UC Berkeley – Koret Visitor Center (conf. 414071)", type: "meeting" },
   { date: "2026-04-15", time: "14:15", title: "🎓 Campus Tour CCSF Ocean Campus – Student Success Center, 50 Frida Kahlo Way", type: "meeting" },
+  { date: "2026-04-16", time: "10:00", title: "🎓 Visita Foothill+De Anza Colleges (FHDA) – per confirmar amb Marilyn Cheung", type: "pending" },
   { date: "2026-04-15", time: "10:00", title: "🍴 Tour La Cocina SF (per confirmar dia)", type: "pending" },
 ];
 
@@ -600,6 +603,8 @@ function CRMTab({ contacts, setContacts, canWrite, t }) {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [dragCardId, setDragCardId] = useState(null);
+  const [dragOverCardId, setDragOverCardId] = useState(null);
   const [form, setForm] = useState({ name: "", institution: "", email: "", phone: "", sentDate: "", status: "Pendent ⏳", lastContact: "", notes: "" });
 
   const statuses = ["Tots", ...Object.keys(STATUS_COLORS)];
@@ -615,6 +620,23 @@ function CRMTab({ contacts, setContacts, canWrite, t }) {
     else setContacts([...contacts, { ...form, id: Date.now() }]);
     setShowForm(false); setEditId(null);
     setForm({ name: "", institution: "", email: "", phone: "", sentDate: "", status: "Pendent ⏳", lastContact: "", notes: "" });
+  };
+
+  // Drag to reorder
+  const handleCardDragStart = (e, id) => { if (!canWrite) return; setDragCardId(id); e.dataTransfer.effectAllowed = "move"; };
+  const handleCardDragOver = (e, id) => { e.preventDefault(); if (id !== dragCardId) setDragOverCardId(id); };
+  const handleCardDrop = (e, targetId) => {
+    e.preventDefault();
+    if (!dragCardId || dragCardId === targetId) { setDragCardId(null); setDragOverCardId(null); return; }
+    const from = contacts.findIndex(c => c.id === dragCardId);
+    const to = contacts.findIndex(c => c.id === targetId);
+    if (from === -1 || to === -1) return;
+    const reordered = [...contacts];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    setContacts(reordered);
+    setDragCardId(null);
+    setDragOverCardId(null);
   };
 
   return (
@@ -652,8 +674,26 @@ function CRMTab({ contacts, setContacts, canWrite, t }) {
         {filtered.map(c => {
           const sc = STATUS_COLORS[c.status] || { bg: "#F1F5F9", text: "#475569", border: "#CBD5E1" };
           const isSelected = selectedCard?.id === c.id;
+          const isDragging = dragCardId === c.id;
+          const isOver = dragOverCardId === c.id;
           return (
-            <div key={c.id} className="card hover-lift" onClick={() => setSelectedCard(isSelected ? null : c)} style={{ cursor: "pointer", border: `1.5px solid ${isSelected ? C.erasmus : C.border}`, boxShadow: isSelected ? `0 0 0 3px ${C.erasmusLight}` : undefined, padding: 16 }}>
+            <div key={c.id}
+              className="card hover-lift"
+              draggable={canWrite}
+              onDragStart={e => handleCardDragStart(e, c.id)}
+              onDragOver={e => handleCardDragOver(e, c.id)}
+              onDrop={e => handleCardDrop(e, c.id)}
+              onDragEnd={() => { setDragCardId(null); setDragOverCardId(null); }}
+              onClick={() => setSelectedCard(isSelected ? null : c)}
+              style={{
+                cursor: canWrite ? "grab" : "pointer",
+                border: `1.5px solid ${isOver ? C.orange : isSelected ? C.erasmus : C.border}`,
+                boxShadow: isSelected ? `0 0 0 3px ${C.erasmusLight}` : isOver ? `0 0 0 3px ${C.orange}33` : undefined,
+                padding: 16,
+                opacity: isDragging ? 0.4 : 1,
+                transition: "opacity 0.15s, border-color 0.15s",
+              }}>
+              {canWrite && <div style={{ fontSize: 10, color: C.light, marginBottom: 4, letterSpacing: 0.5 }}>⠿ arrossega per ordenar</div>}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{c.name}</div>
                 <span className="badge" style={{ background: sc.bg, color: sc.text, borderColor: sc.border, fontSize: 10, flexShrink: 0, marginLeft: 8 }}>{c.status}</span>
@@ -757,12 +797,12 @@ function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
   const [noteText, setNoteText] = useState("");
   const [noteColor, setNoteColor] = useState("#003DA5");
   const [noteTarget, setNoteTarget] = useState("board");
-  // movable events: { id, date, time, title, type }
   const [events, setEvents] = useState(FLIGHT_EVENTS.map((e, i) => ({ ...e, id: i, isPublic: true })));
   const [dragId, setDragId] = useState(null);
   const [dragOverDate, setDragOverDate] = useState(null);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [newEvent, setNewEvent] = useState({ date: "2026-04-10", time: "09:00", title: "", type: "event", isPublic: true });
+  const [editingEvent, setEditingEvent] = useState(null); // for double-click edit modal
 
   const typeColors = { flight: C.erasmus, meeting: C.orange, event: C.green, arrive: C.teal, pending: C.yellow };
   const typeLabels = t.typeLabels;
@@ -815,6 +855,12 @@ function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
     setEvents(prev => prev.filter(ev => ev.id !== id));
   };
 
+  const saveEditingEvent = () => {
+    if (!editingEvent) return;
+    setEvents(prev => prev.map(ev => ev.id === editingEvent.id ? { ...editingEvent } : ev));
+    setEditingEvent(null);
+  };
+
   const EventChip = ({ ev }) => {
     const col = typeColors[ev.type] || C.erasmus;
     const isPrivate = ev.isPublic === false;
@@ -824,7 +870,8 @@ function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
         draggable={canWrite}
         onDragStart={e => canWrite && handleDragStart(e, ev.id)}
         onDragEnd={() => { setDragId(null); setDragOverDate(null); }}
-        title={ev.title}
+        onDoubleClick={e => { e.stopPropagation(); setEditingEvent({ ...ev }); }}
+        title={canWrite ? "Doble clic per editar" : ev.title}
         style={{
           fontSize: 11, background: `${col}18`, border: `1.5px solid ${col}55`,
           borderRadius: 5, padding: "4px 7px", marginBottom: 4,
@@ -883,6 +930,49 @@ function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
 
   return (
     <div>
+      {/* Event edit modal */}
+      {editingEvent && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div className="card shadow" style={{ width: "100%", maxWidth: 500, borderTop: `4px solid ${typeColors[editingEvent.type] || C.erasmus}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, color: C.erasmus, fontSize: 16 }}>📋 Detall de l'esdeveniment</div>
+              <button onClick={() => setEditingEvent(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: C.muted }}>✕</button>
+            </div>
+            <div style={{ marginBottom: 10, padding: "10px 14px", background: C.erasmusLight, borderRadius: 8 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: C.erasmus, marginBottom: 4 }}>{editingEvent.title}</div>
+              <div style={{ fontSize: 12, color: C.muted }}>📅 {fmtDate(editingEvent.date)} · ⏰ {editingEvent.time}h · {typeLabels[editingEvent.type]}</div>
+            </div>
+            {canWrite && <>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Data</label>
+                  <input className="input" type="date" value={editingEvent.date} onChange={e => setEditingEvent({ ...editingEvent, date: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Hora</label>
+                  <input className="input" type="time" value={editingEvent.time} onChange={e => setEditingEvent({ ...editingEvent, time: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Títol</label>
+                <input className="input" value={editingEvent.title} onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })} />
+              </div>
+            </>}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Notes</label>
+              {canWrite
+                ? <textarea className="input" rows="3" value={editingEvent.notes || ""} onChange={e => setEditingEvent({ ...editingEvent, notes: e.target.value })} style={{ width: "100%" }} placeholder="Afegeix informació addicional..." />
+                : <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, padding: "10px 14px", background: C.bg, borderRadius: 8 }}>{editingEvent.notes || "—"}</div>
+              }
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {canWrite && <button className="btn" onClick={saveEditingEvent}>{t.save}</button>}
+              <button className="btn btn-ghost" onClick={() => setEditingEvent(null)}>{t.cancel}</button>
+              {canWrite && <button className="btn btn-red btn-sm" style={{ marginLeft: "auto" }} onClick={() => { deleteEvent(editingEvent.id); setEditingEvent(null); }}>🗑️ {t.delete}</button>}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Cronograma */}
       <div className="card" style={{ marginBottom: 20, padding: 16 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.scheduleTitle}</div>
@@ -1004,35 +1094,41 @@ function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
       {view === "board" && (
         <div>
           <div className="section-title">{t.boardTitle}</div>
-          <div className="card" style={{ marginBottom: 20 }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>Text del post-it</label>
-                <input className="input" placeholder={t.boardPlaceholder} value={noteText} onChange={e => setNoteText(e.target.value)} onKeyDown={e => e.key === "Enter" && addNote()} />
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>{t.colorLabel}</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {[C.erasmus, C.orange, C.green, C.yellow, C.teal, "#E11D74"].map(col => (
-                    <div key={col} onClick={() => setNoteColor(col)} style={{ width: 28, height: 28, borderRadius: "50%", background: col, cursor: "pointer", border: noteColor === col ? "3px solid #1E293B" : "3px solid transparent", transition: "transform 0.1s" }} />
-                  ))}
+          {canWrite ? (
+            <div className="card" style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>Text del post-it</label>
+                  <input className="input" placeholder={t.boardPlaceholder} value={noteText} onChange={e => setNoteText(e.target.value)} onKeyDown={e => e.key === "Enter" && addNote()} />
                 </div>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>{t.colorLabel}</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[C.erasmus, C.orange, C.green, C.yellow, C.teal, "#E11D74"].map(col => (
+                      <div key={col} onClick={() => setNoteColor(col)} style={{ width: 28, height: 28, borderRadius: "50%", background: col, cursor: "pointer", border: noteColor === col ? "3px solid #1E293B" : "3px solid transparent", transition: "transform 0.1s" }} />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>{t.noteTarget}</label>
+                  <select className="select" value={noteTarget} onChange={e => setNoteTarget(e.target.value)}>
+                    <option value="board">📌 {t.noteBoard}</option>
+                    <optgroup label="Setmana 1 (6–12 abr)">
+                      {["2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-11","2026-04-12"].map(d => <option key={d} value={d}>📅 {new Date(d + "T12:00:00").toLocaleDateString("ca-ES", { weekday: "long", day: "numeric" })}</option>)}
+                    </optgroup>
+                    <optgroup label="Setmana 2 (13–19 abr)">
+                      {["2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-18","2026-04-19"].map(d => <option key={d} value={d}>📅 {new Date(d + "T12:00:00").toLocaleDateString("ca-ES", { weekday: "long", day: "numeric" })}</option>)}
+                    </optgroup>
+                  </select>
+                </div>
+                <button className="btn" onClick={addNote}>{t.add}</button>
               </div>
-              <div>
-                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 5, fontWeight: 600 }}>{t.noteTarget}</label>
-                <select className="select" value={noteTarget} onChange={e => setNoteTarget(e.target.value)}>
-                  <option value="board">📌 {t.noteBoard}</option>
-                  <optgroup label="Setmana 1 (6–12 abr)">
-                    {["2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-11","2026-04-12"].map(d => <option key={d} value={d}>📅 {new Date(d + "T12:00:00").toLocaleDateString("ca-ES", { weekday: "long", day: "numeric" })}</option>)}
-                  </optgroup>
-                  <optgroup label="Setmana 2 (13–19 abr)">
-                    {["2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-18","2026-04-19"].map(d => <option key={d} value={d}>📅 {new Date(d + "T12:00:00").toLocaleDateString("ca-ES", { weekday: "long", day: "numeric" })}</option>)}
-                  </optgroup>
-                </select>
-              </div>
-              <button className="btn" onClick={addNote}>{t.add}</button>
             </div>
-          </div>
+          ) : (
+            <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10, padding: "14px 20px", marginBottom: 20, fontSize: 13, color: "#92400E" }}>
+              🔒 La pissarra és només per a usuaris autoritzats. <strong>Inicia sessió</strong> per afegir notes.
+            </div>
+          )}
 
           {/* Board notes */}
           <div className="section-title" style={{ fontSize: 18 }}>📌 Notes a la pissarra</div>
@@ -1185,7 +1281,9 @@ function SFInfoTab({ canWrite, t }) {
 
       {/* Hotel */}
       <div className="card shadow" style={{ marginTop: 24, borderLeft: `5px solid ${C.teal}` }}>
-        <div style={{ fontFamily: "DM Serif Display", fontSize: 20, color: C.teal, marginBottom: 10 }}>🏨 Allotjament: FOUND Hotel Carlton, Nob Hill</div>
+        <div style={{ fontFamily: "DM Serif Display", fontSize: 20, color: C.teal, marginBottom: 10 }}>
+          🏨 Allotjament: <a href="https://www.foundhotels.com/" target="_blank" rel="noopener noreferrer" style={{ color: C.teal, textDecoration: "underline" }}>FOUND Hotel Carlton, Nob Hill</a>
+        </div>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", fontSize: 13, color: C.muted }}>
           <div>📬 1075 Sutter St, Nob Hill, SF 94109</div>
           <div>🛏️ 2 dobles + 1 individual</div>
@@ -1426,6 +1524,12 @@ function DiaryTab({ entries, setEntries, canWrite, t }) {
         <div className="section-title" style={{ marginBottom: 0 }}>{t.diaryTitle}</div>
         {canWrite && <button className="btn" onClick={() => { setOpen(!open); setEditId(null); setForm({ author: PARTICIPANTS[0].name, text: "", date: new Date().toISOString().split("T")[0], type: "text", url: "", isPublic: true }); }}>{t.addEntry}</button>}
       </div>
+
+      {!canWrite && (
+        <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10, padding: "14px 20px", marginBottom: 20, fontSize: 13, color: "#92400E" }}>
+          🔒 Només els usuaris autoritzats poden escriure al diari. Les entrades públiques es mostren a continuació.
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
