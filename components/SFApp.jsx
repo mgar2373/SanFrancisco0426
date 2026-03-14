@@ -25,10 +25,10 @@ const C = {
 // ─── DATA ───────────────────────────────────────────────────
 const PARTICIPANTS = [
   { id: 1, name: "Marissa García Martín", role: "Admin. econòmica / Prof. Màrqueting", emoji: "👩‍💼", color: C.orange },
-  { id: 2, name: "Mònica Regi Pell", role: "Prof. anglès / Coord. Mobilitat VET", emoji: "👩‍🏫", color: C.teal },
-  { id: 3, name: "Èrika Ramón Larios", role: "Estudiant CFGM Gestió Administrativa", emoji: "👩‍🎓", color: C.yellow },
-  { id: 4, name: "Eric Rodriguez González", role: "Estudiant CFGM Màrqueting", emoji: "👨‍🎓", color: C.green },
-  { id: 5, name: "Andrea Battaglia Rayo", role: "Estudiant CFGM Administració", emoji: "👩‍🎓", color: "#E11D74" },
+  { id: 2, name: "Mònica Regi Pell", role: "Professora d'anglès / Coord. Mobilitat FP", emoji: "👩‍🏫", color: C.teal },
+  { id: 3, name: "Èrika Ramón Larios", role: "Estudiant CFGM Gestió Administrativa (àmbit jurídic)", emoji: "👩‍🎓", color: C.yellow },
+  { id: 4, name: "Eric Rodriguez González", role: "Estudiant CFGS Màrqueting i Publicitat", emoji: "👨‍🎓", color: C.green },
+  { id: 5, name: "Andrea Battaglia Rayo", role: "Estudiant CFGS Administració i Finances", emoji: "👩‍🎓", color: "#E11D74" },
 ];
 
 const INITIAL_CONTACTS = [
@@ -475,7 +475,7 @@ export default function App() {
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
-        {activeTab === 0 && <HomeTab t={t} />}
+        {activeTab === 0 && <HomeTab t={t} canWrite={canWrite} />}
         {activeTab === 1 && canWrite && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
         {activeTab === 1 && !canWrite && (
           <div style={{ textAlign: "center", padding: "80px 20px" }}>
@@ -558,7 +558,7 @@ function getUSPacificOffset(date) {
 }
 
 // ─── HOME ────────────────────────────────────────────────────
-function HomeTab({ t }) {
+function HomeTab({ t, canWrite }) {
   const time = useClocks();
   const blanesOff = getEuropeMadridOffset(time);
   const sfOff = getUSPacificOffset(time);
@@ -568,6 +568,20 @@ function HomeTab({ t }) {
   };
   const fmt = (d) => d.toLocaleTimeString("ca-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const blanesLabel = blanesOff === 2 ? "🇪🇸 Blanes (CEST)" : "🇪🇸 Blanes (CET)";
+
+  // Comptador de visites
+  const [visits, setVisits] = React.useState(null);
+  React.useEffect(() => {
+    const track = async () => {
+      try {
+        const r = await window.storage.get("sf2-visits", true);
+        const count = r ? parseInt(r.value) + 1 : 1;
+        await window.storage.set("sf2-visits", String(count), true);
+        setVisits(count);
+      } catch(e) {}
+    };
+    track();
+  }, []);
   const sfLabel = sfOff === -7 ? "🇺🇸 San Francisco (PDT)" : "🇺🇸 San Francisco (PST)";
 
   return (
@@ -630,6 +644,15 @@ function HomeTab({ t }) {
           </div>
         ))}
       </div>
+
+      {/* Comptador de visites — només per a usuaris autoritzats */}
+      {canWrite && visits !== null && (
+        <div style={{ marginTop: 32, padding: "10px 20px", background: C.erasmusLight, border: `1px solid ${C.erasmus}22`, borderRadius: 10, display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.muted }}>
+          <span style={{ fontSize: 18 }}>👁️</span>
+          <span>Visites a la web: <strong style={{ color: C.erasmus, fontSize: 16 }}>{visits.toLocaleString()}</strong></span>
+          <span style={{ fontSize: 11, marginLeft: 4 }}>(acumulat des del primer accés)</span>
+        </div>
+      )}
     </div>
   );
 }
