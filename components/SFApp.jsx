@@ -477,37 +477,6 @@ export default function App() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
-      {/* Footer */}
-      <footer style={{ background: "#004494", marginTop: 40, padding: "0 28px", height: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
-        {/* Erasmus+ */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <div style={{ width: 44, height: 29, background: "#004494", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="38" height="25" viewBox="0 0 38 25"><rect width="38" height="25" fill="#004494" rx="2"/><g fill="#FFED00"><circle cx="19" cy="4.5" r="1.4"/><circle cx="24.5" cy="6" r="1.4"/><circle cx="27.5" cy="10.5" r="1.4"/><circle cx="26" cy="16" r="1.4"/><circle cx="22" cy="19.5" r="1.4"/><circle cx="16" cy="19.5" r="1.4"/><circle cx="12" cy="16" r="1.4"/><circle cx="10.5" cy="10.5" r="1.4"/><circle cx="13.5" cy="6" r="1.4"/></g></svg>
-          </div>
-          <div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: 13, lineHeight: 1.1 }}>Erasmus+</div>
-            <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 8, letterSpacing: "0.8px" }}>PROGRAMME</div>
-          </div>
-        </div>
-
-        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
-
-        {/* Eslògan */}
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Enriching lives, opening minds.</div>
-          <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontStyle: "italic", marginTop: 2 }}>Co-funded by the European Union</div>
-        </div>
-
-        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
-
-        {/* Generalitat text */}
-        <a href="https://agora.xtec.cat/iesserrallarga/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flexShrink: 0, lineHeight: 1.4 }}>
-          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 8, letterSpacing: "0.3px", textTransform: "uppercase" }}>Generalitat de Catalunya</div>
-          <div style={{ color: "white", fontSize: 11, fontWeight: 700 }}>Departament d'Educació i Formació Professional</div>
-          <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>Institut Serrallarga</div>
-        </a>
-      </footer>
-
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "12px 20px" }}>
         {activeTab === 0 && <HomeTab t={t} />}
         {activeTab === 1 && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
@@ -518,6 +487,30 @@ export default function App() {
         {activeTab === 6 && <EvalTab canWrite={canWrite} />}
         {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
       </div>
+
+      {/* Footer */}
+      <footer style={{ background: "#004494", marginTop: 40, padding: "0 28px", height: 56, display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div style={{ width: 44, height: 29, background: "#004494", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="38" height="25" viewBox="0 0 38 25"><rect width="38" height="25" fill="#004494" rx="2"/><g fill="#FFED00"><circle cx="19" cy="4.5" r="1.4"/><circle cx="24.5" cy="6" r="1.4"/><circle cx="27.5" cy="10.5" r="1.4"/><circle cx="26" cy="16" r="1.4"/><circle cx="22" cy="19.5" r="1.4"/><circle cx="16" cy="19.5" r="1.4"/><circle cx="12" cy="16" r="1.4"/><circle cx="10.5" cy="10.5" r="1.4"/><circle cx="13.5" cy="6" r="1.4"/></g></svg>
+          </div>
+          <div>
+            <div style={{ color: "white", fontWeight: 800, fontSize: 13, lineHeight: 1.1 }}>Erasmus+</div>
+            <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 8, letterSpacing: "0.8px" }}>PROGRAMME</div>
+          </div>
+        </div>
+        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>Enriching lives, opening minds.</div>
+          <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontStyle: "italic", marginTop: 2 }}>Co-funded by the European Union</div>
+        </div>
+        <div style={{ width: 1, height: 34, background: "rgba(255,255,255,0.3)", margin: "0 24px", flexShrink: 0 }} />
+        <a href="https://agora.xtec.cat/iesserrallarga/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flexShrink: 0, lineHeight: 1.4 }}>
+          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 8, letterSpacing: "0.3px", textTransform: "uppercase" }}>Generalitat de Catalunya</div>
+          <div style={{ color: "white", fontSize: 11, fontWeight: 700 }}>Departament d'Educació i Formació Professional</div>
+          <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>Institut Serrallarga</div>
+        </a>
+      </footer>
     </div>
   );
 }
