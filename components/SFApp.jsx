@@ -1618,7 +1618,53 @@ function DiaryTab({ entries, setEntries, canWrite, t }) {
             </select>
           </div>
           <textarea className="input" rows="4" placeholder="Explica el teu dia, aprenentatge o experiència..." value={form.text} onChange={e => setForm({ ...form, text: e.target.value })} style={{ width: "100%", marginBottom: 10 }} />
-          {form.type !== "text" && <input className="input" placeholder="URL de l'arxiu/enllaç..." value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} style={{ marginBottom: 10 }} />}
+          {form.type !== "text" && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+                {/* Seleccionar des del dispositiu */}
+                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 13, color: C.erasmus, fontWeight: 600 }}>
+                  📁 Seleccionar arxiu
+                  <input type="file" accept={form.type === "photo" ? "image/*" : form.type === "video" ? "video/*" : "*/*"} style={{ display: "none" }}
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB). Fes servir un URL extern."); return; }
+                      const reader = new FileReader();
+                      reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name });
+                      reader.readAsDataURL(file);
+                    }} />
+                </label>
+                {/* Fer foto amb la càmera */}
+                {(form.type === "photo" || form.type === "video") && (
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 13, color: C.green, fontWeight: 600 }}>
+                    📸 Fer foto/vídeo
+                    <input type="file" accept={form.type === "photo" ? "image/*" : "video/*"} capture="environment" style={{ display: "none" }}
+                      onChange={e => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB)."); return; }
+                        const reader = new FileReader();
+                        reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name });
+                        reader.readAsDataURL(file);
+                      }} />
+                  </label>
+                )}
+                {/* O bé URL manual */}
+                <span style={{ fontSize: 12, color: C.muted, alignSelf: "center" }}>o</span>
+                <input className="input" placeholder="URL extern (https://...)" value={form.url?.startsWith("data:") ? "" : (form.url || "")} onChange={e => setForm({ ...form, url: e.target.value, fileName: "" })} style={{ flex: 1, minWidth: 180 }} />
+              </div>
+              {/* Previsualització */}
+              {form.url?.startsWith("data:image") && (
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <img src={form.url} alt="preview" style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 8, border: `1px solid ${C.border}` }} />
+                  <button onClick={() => setForm({ ...form, url: "", fileName: "" })} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", border: "none", color: "white", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 12 }}>✕</button>
+                </div>
+              )}
+              {form.fileName && !form.url?.startsWith("data:image") && (
+                <div style={{ fontSize: 12, color: C.green, marginTop: 4 }}>✅ {form.fileName}</div>
+              )}
+            </div>
+          )}
           {/* Public/private toggle */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, padding: "10px 14px", background: form.isPublic ? "#F0FDF4" : "#F8FAFC", borderRadius: 8, border: `1px solid ${form.isPublic ? "#BBF7D0" : C.border}` }}>
             <span style={{ fontSize: 13, color: form.isPublic ? C.green : C.muted, flex: 1 }}>{form.isPublic ? t.visibleAll : t.visiblePrivate}</span>
@@ -1758,8 +1804,43 @@ function DocsTab({ docs, setDocs, t }) {
             <input className="input" placeholder="Ex: ESTA Marissa, Passaport Andrea..." value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           </div>
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>URL (opcional)</label>
-            <input className="input" placeholder="https://..." value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} />
+            <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 6, fontWeight: 600 }}>Arxiu o URL</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600, whiteSpace: "nowrap" }}>
+                📁 Seleccionar arxiu
+                <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,image/*" style={{ display: "none" }}
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB). Fes servir un URL extern."); return; }
+                    const reader = new FileReader();
+                    reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name, name: form.name || file.name });
+                    reader.readAsDataURL(file);
+                  }} />
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.green, fontWeight: 600, whiteSpace: "nowrap" }}>
+                📸 Fer foto
+                <input type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB)."); return; }
+                    const reader = new FileReader();
+                    reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name, name: form.name || file.name });
+                    reader.readAsDataURL(file);
+                  }} />
+              </label>
+              <input className="input" placeholder="o URL extern (https://...)" value={form.url?.startsWith("data:") ? "" : (form.url || "")} onChange={e => setForm({ ...form, url: e.target.value, fileName: "" })} style={{ flex: 1, minWidth: 160 }} />
+            </div>
+            {form.url?.startsWith("data:image") && (
+              <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
+                <img src={form.url} alt="preview" style={{ maxHeight: 100, maxWidth: "100%", borderRadius: 6, border: `1px solid ${C.border}` }} />
+                <button onClick={() => setForm({ ...form, url: "", fileName: "" })} style={{ position: "absolute", top: 2, right: 2, background: "rgba(0,0,0,0.5)", border: "none", color: "white", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: 11 }}>✕</button>
+              </div>
+            )}
+            {form.fileName && !form.url?.startsWith("data:image") && (
+              <div style={{ fontSize: 12, color: C.green, marginTop: 4 }}>✅ {form.fileName}</div>
+            )}
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>{t.notes}</label>
