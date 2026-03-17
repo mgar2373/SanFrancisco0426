@@ -347,11 +347,12 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       try {
-        const r1 = await window.storage.get("sf2-contacts"); if (r1) setContacts(JSON.parse(r1.value));
-        const r2 = await window.storage.get("sf2-expenses"); if (r2) setExpenses(JSON.parse(r2.value));
-        const r3 = await window.storage.get("sf2-diary"); if (r3) setDiaryEntries(JSON.parse(r3.value));
-        const r4 = await window.storage.get("sf2-board"); if (r4) setBoardNotes(JSON.parse(r4.value));
-        const r5 = await window.storage.get("sf2-docs"); if (r5) setDocs(JSON.parse(r5.value));
+        const r1 = await window.storage.get("sf2-contacts", true); if (r1) setContacts(JSON.parse(r1.value));
+        const r2 = await window.storage.get("sf2-expenses", true); if (r2) setExpenses(JSON.parse(r2.value));
+        const r3 = await window.storage.get("sf2-diary", true); if (r3) setDiaryEntries(JSON.parse(r3.value));
+        const r4 = await window.storage.get("sf2-board", true); if (r4) setBoardNotes(JSON.parse(r4.value));
+        const r5 = await window.storage.get("sf2-docs", true); if (r5) setDocs(JSON.parse(r5.value));
+        const r6 = await window.storage.get("sf2-calevents", true); if (r6) setCalEvents(JSON.parse(r6.value));
       } catch (e) {}
     };
     load();
@@ -1266,19 +1267,15 @@ function SFInfoTab({ canWrite, t }) {
     <div>
       {/* Mapa itinerari — només usuaris autoritzats */}
       {canWrite && (
-        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.erasmus}`, padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "14px 20px 10px", fontFamily: "DM Serif Display", fontSize: 18, color: C.erasmus }}>🗺️ Mapa de l'itinerari — San Francisco</div>
-          <iframe
-            src="https://www.google.com/maps/d/embed?mid=1mbndaH2arNdg6oaHA&ehbc=2E312F"
-            width="100%"
-            height="420"
-            style={{ border: 0, display: "block" }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-          <div style={{ padding: "8px 20px", background: C.bg, fontSize: 12, color: C.muted }}>
-            <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" style={{ color: C.erasmus }}>Obrir a Google Maps ↗</a>
+        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.erasmus}` }}>
+          <div style={{ fontFamily: "DM Serif Display", fontSize: 18, color: C.erasmus, marginBottom: 12 }}>🗺️ Mapa de l'itinerari — San Francisco</div>
+          <div style={{ background: `linear-gradient(135deg, ${C.erasmusLight} 0%, #E0F2FE 100%)`, borderRadius: 10, padding: "32px 20px", textAlign: "center", border: `1px solid ${C.erasmus}22` }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🌉</div>
+            <div style={{ fontWeight: 700, color: C.erasmus, fontSize: 15, marginBottom: 6 }}>Mapa personalitzat del viatge</div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 20 }}>Tots els llocs de l'itinerari: hotel, SFUSD, La Cocina, CCSF i més</div>
+            <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 14, padding: "10px 24px" }}>
+              Obrir mapa a Google Maps 🗺️
+            </a>
           </div>
         </div>
       )}
