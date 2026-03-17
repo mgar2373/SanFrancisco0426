@@ -339,6 +339,7 @@ export default function App() {
   const [diaryEntries, setDiaryEntries] = useState([]);
   const [boardNotes, setBoardNotes] = useState([]);
   const [docs, setDocs] = useState([]);
+  const [calEvents, setCalEvents] = useState(FLIGHT_EVENTS.map((e, i) => ({ ...e, id: i, isPublic: true })));
   const [showAuth, setShowAuth] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const t = T[lang];
@@ -430,7 +431,7 @@ export default function App() {
               {/* Auth - person icon */}
               {user ? (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: 8 }}>
-                  {isAdmin && (
+                  {canWrite && (
                     <button onClick={() => setShowAdmin(true)} style={{ background: "#7C3AED", color: "white", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "DM Sans, sans-serif" }}>{t.adminPanel}</button>
                   )}
                   <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "6px 12px", color: "white", fontSize: 12 }}>
@@ -485,7 +486,7 @@ export default function App() {
             <button onClick={() => setShowAuth(true)} className="btn">Iniciar sessió</button>
           </div>
         )}
-        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} canWrite={canWrite} t={t} />}
+        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} calEvents={calEvents} setCalEvents={save("sf2-calevents", setCalEvents)} canWrite={canWrite} t={t} />}
         {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
         {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
         {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
@@ -853,12 +854,12 @@ function CRMTab({ contacts, setContacts, canWrite, t }) {
 }
 
 // ─── CALENDAR ────────────────────────────────────────────────
-function CalendarTab({ boardNotes, setBoard, canWrite, t }) {
+function CalendarTab({ boardNotes, setBoard, calEvents, setCalEvents, canWrite, t }) {
   const [view, setView] = useState("timeline");
   const [noteText, setNoteText] = useState("");
   const [noteColor, setNoteColor] = useState("#003DA5");
   const [noteTarget, setNoteTarget] = useState("board");
-  const [events, setEvents] = useState(FLIGHT_EVENTS.map((e, i) => ({ ...e, id: i, isPublic: true })));
+  const [events, setEvents] = [calEvents, setCalEvents];
   const [dragId, setDragId] = useState(null);
   const [dragOverDate, setDragOverDate] = useState(null);
   const [showAddEvent, setShowAddEvent] = useState(false);
@@ -1263,6 +1264,25 @@ function SFInfoTab({ canWrite, t }) {
 
   return (
     <div>
+      {/* Mapa itinerari — només usuaris autoritzats */}
+      {canWrite && (
+        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.erasmus}`, padding: 0, overflow: "hidden" }}>
+          <div style={{ padding: "14px 20px 10px", fontFamily: "DM Serif Display", fontSize: 18, color: C.erasmus }}>🗺️ Mapa de l'itinerari — San Francisco</div>
+          <iframe
+            src="https://www.google.com/maps/d/embed?mid=1mbndaH2arNdg6oaHA&ehbc=2E312F"
+            width="100%"
+            height="420"
+            style={{ border: 0, display: "block" }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          <div style={{ padding: "8px 20px", background: C.bg, fontSize: 12, color: C.muted }}>
+            <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" style={{ color: C.erasmus }}>Obrir a Google Maps ↗</a>
+          </div>
+        </div>
+      )}
+
       {/* Map search */}
       <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.teal}` }}>
         <div style={{ fontFamily: "DM Serif Display", fontSize: 20, color: C.teal, marginBottom: 12 }}>🔍 Cercador de llocs — San Francisco</div>
