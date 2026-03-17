@@ -1267,16 +1267,10 @@ function SFInfoTab({ canWrite, t }) {
     <div>
       {/* Mapa itinerari — només usuaris autoritzats */}
       {canWrite && (
-        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.erasmus}` }}>
-          <div style={{ fontFamily: "DM Serif Display", fontSize: 18, color: C.erasmus, marginBottom: 12 }}>🗺️ Mapa de l'itinerari — San Francisco</div>
-          <div style={{ background: `linear-gradient(135deg, ${C.erasmusLight} 0%, #E0F2FE 100%)`, borderRadius: 10, padding: "32px 20px", textAlign: "center", border: `1px solid ${C.erasmus}22` }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🌉</div>
-            <div style={{ fontWeight: 700, color: C.erasmus, fontSize: 15, marginBottom: 6 }}>Mapa personalitzat del viatge</div>
-            <div style={{ fontSize: 13, color: C.muted, marginBottom: 20 }}>Tots els llocs de l'itinerari: hotel, SFUSD, La Cocina, CCSF i més</div>
-            <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 14, padding: "10px 24px" }}>
-              Obrir mapa a Google Maps 🗺️
-            </a>
-          </div>
+        <div style={{ marginBottom: 24 }}>
+          <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 14, padding: "10px 28px", textDecoration: "none" }}>
+            🗺️ Itinerari
+          </a>
         </div>
       )}
 
