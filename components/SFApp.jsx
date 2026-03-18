@@ -1576,7 +1576,7 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
                 ))}
                 <td style={{ padding: "9px 14px", textAlign: "right", fontWeight: 800, color: purple }}>{(pe.amount*pe.persons.length).toFixed(2)}€</td>
                 {canWrite && <td style={{ padding: "9px 8px", textAlign: "center" }}>
-                  <div style={{ display: "flex", gap: 4", justifyContent: "center" }}>
+                  <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
                     {prevEditing===pe.id
                       ? <button onClick={() => setPrevEditing(null)} style={{ background: C.green, color: "white", border: "none", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 11 }}>✓</button>
                       : <button onClick={() => setPrevEditing(pe.id)} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 11, color: C.muted }}>✏️</button>}
