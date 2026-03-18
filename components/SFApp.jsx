@@ -341,6 +341,13 @@ export default function App() {
   const [docs, setDocs] = useState([]);
   const [calEvents, setCalEvents] = useState(FLIGHT_EVENTS.map((e, i) => ({ ...e, id: i, isPublic: true })));
   const [sfNotes, setSfNotes] = useState([]);
+  const PREV_DEFAULT = [
+    { id: 1, label: "ESTA (autorització EUA)", amount: 21, persons: PARTICIPANTS.map(p => p.name) },
+    { id: 2, label: "Vols + Allotjament (Radialtours)", amount: 1410, persons: PARTICIPANTS.map(p => p.name) },
+    { id: 3, label: "Transfers aeroport", amount: 0, persons: PARTICIPANTS.map(p => p.name) },
+    { id: 4, label: "Altres despeses prèvies", amount: 0, persons: PARTICIPANTS.map(p => p.name) },
+  ];
+  const [prevExpenses, setPrevExpenses] = useState(PREV_DEFAULT);
   const [showAuth, setShowAuth] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const t = T[lang];
@@ -355,6 +362,7 @@ export default function App() {
         const r5 = await window.storage.get("sf2-docs", true); if (r5) setDocs(JSON.parse(r5.value));
         const r6 = await window.storage.get("sf2-calevents", true); if (r6) setCalEvents(JSON.parse(r6.value));
         const r7 = await window.storage.get("sf2-sfnotes", true); if (r7) setSfNotes(JSON.parse(r7.value));
+        const r8 = await window.storage.get("sf2-prevexp", true); if (r8) setPrevExpenses(JSON.parse(r8.value));
       } catch (e) {}
     };
     load();
@@ -491,7 +499,7 @@ export default function App() {
         )}
         {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} calEvents={calEvents} setCalEvents={save("sf2-calevents", setCalEvents)} canWrite={canWrite} t={t} />}
         {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} sfNotes={sfNotes} setSfNotes={save("sf2-sfnotes", setSfNotes)} />}
-        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
+        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} prevExpenses={prevExpenses} setPrevExpenses={save("sf2-prevexp", setPrevExpenses)} canWrite={canWrite} />}
         {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
         {activeTab === 6 && <EvalTab canWrite={canWrite} />}
         {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
@@ -1445,73 +1453,88 @@ function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
 }
 
 // ─── BUDGET ──────────────────────────────────────────────────
-function BudgetTab({ expenses, setExpenses, canWrite }) {
-  const [form, setForm] = useState({ date: "", place: "", amount: "", person: PARTICIPANTS[0].name, category: "Menjar" });
+function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWrite }) {
+  const [form, setForm] = useState({ date: "", place: "", amount: "", persons: [PARTICIPANTS[0].name], category: "Menjar" });
   const [filterPerson, setFilterPerson] = useState("Tots");
   const [filterCat, setFilterCat] = useState("Totes");
+  const [prevEditing, setPrevEditing] = useState(null);
 
-  const categories = ["Menjar", "Transport", "Lleure", "Allotjament", "Altres"];
-  const catColors = { Menjar: C.orange, Transport: C.erasmus, Lleure: C.green, Allotjament: C.teal, Altres: "#8B5CF6" };
+  const categories = ["Menjar", "Transport", "Lleure", "Altres"];
+  const catColors = { Menjar: C.orange, Transport: C.erasmus, Lleure: C.green, Altres: "#8B5CF6" };
+
+  const togglePerson = (name) => {
+    const cur = form.persons;
+    if (cur.includes(name)) { if (cur.length === 1) return; setForm({ ...form, persons: cur.filter(p => p !== name) }); }
+    else setForm({ ...form, persons: [...cur, name] });
+  };
 
   const add = () => {
     if (!form.date || !form.place || !form.amount || !canWrite) return;
-    setExpenses([...expenses, { id: Date.now(), ...form, amount: parseFloat(form.amount) }]);
-    setForm({ date: form.date, place: "", amount: "", person: form.person, category: form.category });
+    const totalAmount = parseFloat(form.amount);
+    const perPerson = totalAmount / form.persons.length;
+    const newEntries = form.persons.map(person => ({ id: Date.now() + Math.random(), date: form.date, place: form.place, amount: parseFloat(perPerson.toFixed(2)), person, category: form.category, shared: form.persons.length > 1 ? `Compartida ${form.persons.length}p` : null }));
+    setExpenses([...expenses, ...newEntries]);
+    setForm({ date: form.date, place: "", amount: "", persons: form.persons, category: form.category });
   };
 
   const filtered = expenses.filter(e => (filterPerson === "Tots" || e.person === filterPerson) && (filterCat === "Totes" || e.category === filterCat));
   const total = filtered.reduce((s, e) => s + e.amount, 0);
 
-  // Treasury: group by date
-  const tripDays = ["2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18"];
+  const tripDays = ["2026-04-10","2026-04-11","2026-04-12","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-18"];
   const byDay = tripDays.map(day => {
     const dayExp = expenses.filter(e => e.date === day);
     const dayTotal = dayExp.reduce((s, e) => s + e.amount, 0);
     const byCat = {};
     categories.forEach(c => { byCat[c] = dayExp.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0); });
-    return { day, dayTotal, byCat, entries: dayExp };
+    return { day, dayTotal, byCat };
   });
   const grandTotal = byDay.reduce((s, d) => s + d.dayTotal, 0);
-
   const byPerson = PARTICIPANTS.map(p => ({ ...p, total: expenses.filter(e => e.person === p.name).reduce((s, e) => s + e.amount, 0) }));
   const byCatTotal = categories.map(c => ({ cat: c, total: expenses.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0) }));
+  const prevTotalPerPerson = (name) => prevExpenses.reduce((s, pe) => pe.persons.includes(name) && pe.amount > 0 ? s + pe.amount : s, 0);
 
   return (
     <div>
       <div className="section-title">Control de Pressupost</div>
 
-      {/* Add form */}
-      <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.orange}` }}>
-        <div style={{ fontWeight: 700, marginBottom: 14, color: C.orange }}>+ Registrar despesa</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-          {[["Data", "date", "date"], ["Lloc / Comerç", "place", "text"], ["Import (€)", "amount", "number"]].map(([l, k, t]) => (
-            <div key={k}>
-              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>{l}</label>
-              <input className="input" type={t} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} step={t === "number" ? "0.01" : undefined} min={t === "number" ? "0" : undefined} />
+      {canWrite && (
+        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.orange}` }}>
+          <div style={{ fontWeight: 700, marginBottom: 14, color: C.orange }}>+ Registrar despesa</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 12 }}>
+            {[["Data","date","date"],["Lloc / Comerç","place","text"],["Import TOTAL (€)","amount","number"]].map(([l,k,tp]) => (
+              <div key={k}>
+                <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>{l}</label>
+                <input className="input" type={tp} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} step={tp==="number"?"0.01":undefined} min={tp==="number"?"0":undefined} />
+              </div>
+            ))}
+            <div>
+              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Categoria</label>
+              <select className="select" style={{ width: "100%" }} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                {categories.map(c => <option key={c}>{c}</option>)}
+              </select>
             </div>
-          ))}
-          <div>
-            <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Persona</label>
-            <select className="select" style={{ width: "100%" }} value={form.person} onChange={e => setForm({ ...form, person: e.target.value })}>
-              {PARTICIPANTS.map(p => <option key={p.id}>{p.name}</option>)}
-            </select>
           </div>
-          <div>
-            <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Categoria</label>
-            <select className="select" style={{ width: "100%" }} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-              {categories.map(c => <option key={c}>{c}</option>)}
-            </select>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <label style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>Repartir entre:</label>
+              <button onClick={() => setForm({ ...form, persons: PARTICIPANTS.map(p => p.name) })} style={{ fontSize: 11, background: "none", border: `1px solid ${C.border}`, borderRadius: 6, padding: "2px 8px", cursor: "pointer", color: C.muted }}>Tots</button>
+              {form.persons.length > 1 && form.amount && <span style={{ fontSize: 11, color: C.green, fontWeight: 600 }}>{(parseFloat(form.amount)/form.persons.length).toFixed(2)}€/persona</span>}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {PARTICIPANTS.map(p => (
+                <button key={p.id} onClick={() => togglePerson(p.name)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 20, border: `1.5px solid ${form.persons.includes(p.name) ? p.color : C.border}`, background: form.persons.includes(p.name) ? `${p.color}18` : "white", color: form.persons.includes(p.name) ? p.color : C.muted, cursor: "pointer", fontSize: 12, fontWeight: form.persons.includes(p.name) ? 700 : 400, fontFamily: "DM Sans, sans-serif" }}>
+                  {p.emoji} {p.name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <button className="btn" style={{ width: "100%" }} onClick={add}>Afegir</button>
-          </div>
+          <button className="btn" onClick={add}>Afegir despesa</button>
         </div>
-      </div>
+      )}
 
-      {/* Stats */}
       <div className="grid-2" style={{ marginBottom: 24 }}>
         <div className="card shadow">
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 12 }}>Per persona</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 12 }}>Per persona (viatge)</div>
           {byPerson.map(p => (
             <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <span style={{ fontSize: 18 }}>{p.emoji}</span>
@@ -1521,7 +1544,7 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
                   <span style={{ color: p.color, fontWeight: 700 }}>{p.total.toFixed(2)}€</span>
                 </div>
                 <div style={{ height: 5, background: C.bg, borderRadius: 3 }}>
-                  <div style={{ height: "100%", width: `${Math.min(100, (p.total / (Math.max(...byPerson.map(x => x.total)) || 1)) * 100)}%`, background: p.color, borderRadius: 3, transition: "width 0.3s" }} />
+                  <div style={{ height: "100%", width: `${Math.min(100,(p.total/(Math.max(...byPerson.map(x=>x.total))||1))*100)}%`, background: p.color, borderRadius: 3 }} />
                 </div>
               </div>
             </div>
@@ -1537,13 +1560,12 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
           ))}
           <hr />
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 16 }}>
-            <span style={{ color: C.text }}>TOTAL</span>
-            <span style={{ color: C.orange }}>{expenses.reduce((s, e) => s + e.amount, 0).toFixed(2)}€</span>
+            <span style={{ color: C.text }}>TOTAL viatge</span>
+            <span style={{ color: C.orange }}>{expenses.reduce((s,e)=>s+e.amount,0).toFixed(2)}€</span>
           </div>
         </div>
       </div>
 
-      {/* Expense list */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         <select className="select" value={filterPerson} onChange={e => setFilterPerson(e.target.value)}>
           <option>Tots</option>
@@ -1561,18 +1583,18 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ background: "#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
-                {["Data", "Lloc", "Persona", "Categoria", "Import", ""].map(h => <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontWeight: 700, color: C.muted, fontSize: 11, letterSpacing: 0.5 }}>{h}</th>)}
+                {["Data","Lloc","Persona","Categoria","Import",""].map(h => <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontWeight: 700, color: C.muted, fontSize: 11 }}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
-              {filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).map(e => (
+              {filtered.sort((a,b) => new Date(b.date)-new Date(a.date)).map(e => (
                 <tr key={e.id} style={{ borderBottom: `1px solid ${C.border}` }}>
                   <td style={{ padding: "10px 16px", color: C.muted, fontSize: 12 }}>{fmtDate(e.date)}</td>
-                  <td style={{ padding: "10px 16px", fontWeight: 500 }}>{e.place}</td>
+                  <td style={{ padding: "10px 16px", fontWeight: 500 }}>{e.place}{e.shared && <span style={{ fontSize: 10, color: C.teal, marginLeft: 6, background: `${C.teal}15`, padding: "1px 6px", borderRadius: 4 }}>{e.shared}</span>}</td>
                   <td style={{ padding: "10px 16px", color: C.muted, fontSize: 12 }}>{e.person.split(" ")[0]}</td>
                   <td style={{ padding: "10px 16px" }}><span className="badge" style={{ background: `${catColors[e.category]}18`, color: catColors[e.category], borderColor: `${catColors[e.category]}44` }}>{e.category}</span></td>
                   <td style={{ padding: "10px 16px", fontWeight: 700, color: C.orange }}>{e.amount.toFixed(2)}€</td>
-                  <td style={{ padding: "10px 16px" }}><button onClick={() => setExpenses(expenses.filter(x => x.id !== e.id))} style={{ background: "#FEF2F2", border: `1px solid #FECACA`, color: C.red, padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 12, fontFamily: "DM Sans" }}>✕</button></td>
+                  <td style={{ padding: "10px 16px" }}>{canWrite && <button onClick={() => setExpenses(expenses.filter(x=>x.id!==e.id))} style={{ background: "#FEF2F2", border: `1px solid #FECACA`, color: C.red, padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>✕</button>}</td>
                 </tr>
               ))}
             </tbody>
@@ -1580,11 +1602,58 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
         </div>
       )}
 
-      {/* TREASURY TABLE */}
+      <div className="section-title">Resum despeses prèvies al viatge</div>
+      <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Despeses pagades abans de la sortida. Clica ✏️ per editar import i participants.</div>
+      <div className="card shadow" style={{ padding: 0, overflow: "auto", marginBottom: 32 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 700 }}>
+          <thead>
+            <tr style={{ background: "#7C3AED" }}>
+              <th style={{ padding: "10px 16px", textAlign: "left", color: "white", fontWeight: 700 }}>Concepte</th>
+              <th style={{ padding: "10px 12px", color: "white", fontWeight: 700, textAlign: "right" }}>Import/p.</th>
+              {PARTICIPANTS.map(p => <th key={p.id} style={{ padding: "10px 10px", color: "white", fontWeight: 600, textAlign: "center", fontSize: 11 }}>{p.emoji}<br/>{p.name.split(" ")[0]}</th>)}
+              <th style={{ padding: "10px 14px", color: "white", fontWeight: 800, textAlign: "right" }}>TOTAL</th>
+              {canWrite && <th style={{ padding: "10px 10px", color: "rgba(255,255,255,0.6)", textAlign: "center", fontSize: 11 }}>Editar</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {prevExpenses.map((pe, idx) => (
+              <tr key={pe.id} style={{ background: idx%2===0?"white":"#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
+                <td style={{ padding: "10px 16px", fontWeight: 600 }}>
+                  {prevEditing===pe.id ? <input className="input" value={pe.label} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,label:e.target.value}:x))} style={{ fontSize: 12 }} /> : pe.label}
+                </td>
+                <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#7C3AED" }}>
+                  {prevEditing===pe.id ? <input className="input" type="number" value={pe.amount} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,amount:parseFloat(e.target.value)||0}:x))} style={{ width: 80, fontSize: 12 }} /> : `${pe.amount.toFixed(2)}€`}
+                </td>
+                {PARTICIPANTS.map(p => (
+                  <td key={p.id} style={{ padding: "10px 10px", textAlign: "center" }}>
+                    {prevEditing===pe.id
+                      ? <input type="checkbox" checked={pe.persons.includes(p.name)} onChange={() => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,persons:x.persons.includes(p.name)?x.persons.filter(n=>n!==p.name):[...x.persons,p.name]}:x))} />
+                      : pe.persons.includes(p.name) ? <span style={{ color: "#7C3AED", fontWeight: 700 }}>{pe.amount.toFixed(2)}€</span> : <span style={{ color: C.light }}>—</span>}
+                  </td>
+                ))}
+                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 800, color: "#7C3AED" }}>{(pe.amount*pe.persons.length).toFixed(2)}€</td>
+                {canWrite && <td style={{ padding: "10px 10px", textAlign: "center" }}>
+                  {prevEditing===pe.id
+                    ? <button onClick={() => setPrevEditing(null)} style={{ background: C.green, color: "white", border: "none", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 11 }}>✓</button>
+                    : <button onClick={() => setPrevEditing(pe.id)} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.muted }}>✏️</button>}
+                </td>}
+              </tr>
+            ))}
+            <tr style={{ background: "#EDE9FE", borderTop: `2px solid #7C3AED` }}>
+              <td style={{ padding: "11px 16px", fontWeight: 800, color: "#7C3AED" }}>TOTAL PREVI</td>
+              <td />
+              {PARTICIPANTS.map(p => <td key={p.id} style={{ padding: "11px 10px", textAlign: "center", fontWeight: 800, color: "#7C3AED" }}>{prevTotalPerPerson(p.name).toFixed(2)}€</td>)}
+              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 900, color: "#7C3AED", fontSize: 15 }}>{prevExpenses.reduce((s,pe)=>s+pe.amount*pe.persons.length,0).toFixed(2)}€</td>
+              {canWrite && <td />}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div className="section-title">Taula de Tresoreria diària</div>
-      <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>S'actualitza automàticament quan afegiu despeses. Valors en euros (€).</div>
+      <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Despeses durant el viatge. Valors en euros (€).</div>
       <div className="card shadow" style={{ padding: 0, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 700 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 600 }}>
           <thead>
             <tr style={{ background: C.erasmus }}>
               <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, whiteSpace: "nowrap" }}>Dia</th>
@@ -1595,34 +1664,21 @@ function BudgetTab({ expenses, setExpenses, canWrite }) {
           </thead>
           <tbody>
             {byDay.map((row, idx) => {
-              const accum = byDay.slice(0, idx + 1).reduce((s, r) => s + r.dayTotal, 0);
+              const accum = byDay.slice(0,idx+1).reduce((s,r)=>s+r.dayTotal,0);
               const hasData = row.dayTotal > 0;
-              const d = new Date(row.day + "T12:00:00");
+              const d = new Date(row.day+"T12:00:00");
               return (
-                <tr key={row.day} style={{ background: hasData ? "#FFFBEB" : idx % 2 === 0 ? "white" : "#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "9px 14px", fontWeight: hasData ? 700 : 400, color: hasData ? C.text : C.muted, whiteSpace: "nowrap" }}>
-                    {d.toLocaleDateString("ca-ES", { weekday: "short", day: "numeric", month: "short" })}
-                  </td>
-                  {categories.map(c => (
-                    <td key={c} style={{ padding: "9px 12px", textAlign: "right", color: row.byCat[c] > 0 ? catColors[c] : C.light, fontWeight: row.byCat[c] > 0 ? 700 : 400 }}>
-                      {row.byCat[c] > 0 ? row.byCat[c].toFixed(2) : "—"}
-                    </td>
-                  ))}
-                  <td style={{ padding: "9px 14px", textAlign: "right", fontWeight: 800, color: hasData ? C.orange : C.light }}>
-                    {hasData ? row.dayTotal.toFixed(2) + "€" : "—"}
-                  </td>
-                  <td style={{ padding: "9px 14px", textAlign: "right", color: C.muted, fontSize: 11 }}>
-                    {accum > 0 ? accum.toFixed(2) + "€" : "—"}
-                  </td>
+                <tr key={row.day} style={{ background: hasData?"#FFFBEB":idx%2===0?"white":"#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: "9px 14px", fontWeight: hasData?700:400, color: hasData?C.text:C.muted, whiteSpace: "nowrap" }}>{d.toLocaleDateString("ca-ES",{weekday:"short",day:"numeric",month:"short"})}</td>
+                  {categories.map(c => <td key={c} style={{ padding: "9px 12px", textAlign: "right", color: row.byCat[c]>0?catColors[c]:C.light, fontWeight: row.byCat[c]>0?700:400 }}>{row.byCat[c]>0?row.byCat[c].toFixed(2):"—"}</td>)}
+                  <td style={{ padding: "9px 14px", textAlign: "right", fontWeight: 800, color: hasData?C.orange:C.light }}>{hasData?row.dayTotal.toFixed(2)+"€":"—"}</td>
+                  <td style={{ padding: "9px 14px", textAlign: "right", color: C.muted, fontSize: 11 }}>{accum>0?accum.toFixed(2)+"€":"—"}</td>
                 </tr>
               );
             })}
             <tr style={{ background: C.erasmusLight, borderTop: `2px solid ${C.erasmus}` }}>
               <td style={{ padding: "11px 14px", fontWeight: 800, color: C.erasmus }}>TOTAL</td>
-              {categories.map(c => {
-                const t = byDay.reduce((s, r) => s + r.byCat[c], 0);
-                return <td key={c} style={{ padding: "11px 12px", textAlign: "right", fontWeight: 800, color: t > 0 ? catColors[c] : C.light }}>{t > 0 ? t.toFixed(2) + "€" : "—"}</td>;
-              })}
+              {categories.map(c => { const tv=byDay.reduce((s,r)=>s+r.byCat[c],0); return <td key={c} style={{ padding: "11px 12px", textAlign: "right", fontWeight: 800, color: tv>0?catColors[c]:C.light }}>{tv>0?tv.toFixed(2)+"€":"—"}</td>; })}
               <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 900, color: C.orange, fontSize: 15 }}>{grandTotal.toFixed(2)}€</td>
               <td style={{ padding: "11px 14px" }} />
             </tr>
