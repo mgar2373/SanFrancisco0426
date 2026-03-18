@@ -334,6 +334,9 @@ export default function App() {
   const { user, profile, canWrite, isAdmin, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [lang, setLang] = useState("ca");
+  // tabPrivacy[i] = true → pestanya privada (només canWrite); false → pública
+  // Índexs: 0=Inici, 1=CRM, 2=Calendari, 3=InfoSF, 4=Pressupost, 5=Diari, 6=Avaluació, 7=Documents
+  const [tabPrivacy, setTabPrivacy] = useState([false, true, false, false, false, false, false, true]);
   const [contacts, setContacts] = useState(INITIAL_CONTACTS);
   const [expenses, setExpenses] = useState([]);
   const [diaryEntries, setDiaryEntries] = useState([]);
@@ -363,6 +366,7 @@ export default function App() {
         const r6 = await window.storage.get("sf2-calevents", true); if (r6) setCalEvents(JSON.parse(r6.value));
         const r7 = await window.storage.get("sf2-sfnotes", true); if (r7) setSfNotes(JSON.parse(r7.value));
         const r8 = await window.storage.get("sf2-prevexp", true); if (r8) setPrevExpenses(JSON.parse(r8.value));
+        const r9 = await window.storage.get("sf2-tabprivacy", true); if (r9) setTabPrivacy(JSON.parse(r9.value));
       } catch (e) {}
     };
     load();
@@ -374,8 +378,18 @@ export default function App() {
     try { await window.storage.set(key, JSON.stringify(data), true); } catch (e) {}
   };
 
-  // Tabs: show Documents tab only to authorised users
-  const visibleTabs = t.tabs.filter((_, i) => i !== 7 || canWrite);
+  const toggleTabPrivacy = async (i) => {
+    const updated = tabPrivacy.map((v, idx) => idx === i ? !v : v);
+    setTabPrivacy(updated);
+    try { await window.storage.set("sf2-tabprivacy", JSON.stringify(updated), true); } catch (e) {}
+  };
+
+  // Tabs: ocultar Documents a no-autoritzats, i pestanyes privades també
+  const visibleTabs = t.tabs.filter((_, i) => {
+    if (i === 7 && !canWrite) return false; // Documents sempre privat
+    if (tabPrivacy[i] && !canWrite) return false; // Pestanyes marcades com privades
+    return true;
+  });
 
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
@@ -466,9 +480,37 @@ export default function App() {
           </div>
           {/* Pestanyes */}
           <div style={{ display: "flex", gap: 0, overflowX: "auto", marginTop: 0 }}>
-            {visibleTabs.map((tabLabel, i) => (
-              <button key={i} className={`tab-btn ${activeTab === i ? "active" : ""}`} onClick={() => setActiveTab(i)}>{tabLabel}</button>
-            ))}
+            {t.tabs.map((tabLabel, realIdx) => {
+              if (realIdx === 7 && !canWrite) return null;
+              if (tabPrivacy[realIdx] && !canWrite) return null;
+              const visibleIdx = t.tabs.slice(0, realIdx + 1).filter((_, i) => {
+                if (i === 7 && !canWrite) return false;
+                if (tabPrivacy[i] && !canWrite) return false;
+                return true;
+              }).length - 1;
+              return (
+                <div key={realIdx} style={{ position: "relative", display: "flex", alignItems: "stretch" }}>
+                  <button
+                    className={`tab-btn ${activeTab === realIdx ? "active" : ""}`}
+                    onClick={() => setActiveTab(realIdx)}
+                    style={{ paddingRight: canWrite ? 28 : undefined }}
+                  >
+                    {tabLabel}
+                    {canWrite && tabPrivacy[realIdx] && <span style={{ fontSize: 9, marginLeft: 4, opacity: 0.7 }}>🔒</span>}
+                  </button>
+                  {canWrite && realIdx !== 7 && (
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleTabPrivacy(realIdx); }}
+                      title={tabPrivacy[realIdx] ? "Fer pública" : "Fer privada"}
+                      style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 10, color: tabPrivacy[realIdx] ? "#FFED00" : "rgba(255,255,255,0.4)", padding: 0, lineHeight: 1 }}
+                    >
+                      {tabPrivacy[realIdx] ? "🔒" : "👁"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           </div>
         </div>
       </div>
@@ -487,22 +529,30 @@ export default function App() {
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 20px" }}>
-        {activeTab === 0 && <HomeTab t={t} canWrite={canWrite} />}
-        {activeTab === 1 && canWrite && <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} />}
-        {activeTab === 1 && !canWrite && (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🔒</div>
-            <div style={{ fontFamily: "DM Serif Display", fontSize: 24, color: C.erasmus, marginBottom: 10 }}>Contingut privat</div>
-            <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>El CRM de contactes és accessible només per als usuaris autoritzats.</div>
-            <button onClick={() => setShowAuth(true)} className="btn">Iniciar sessió</button>
-          </div>
-        )}
-        {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} calEvents={calEvents} setCalEvents={save("sf2-calevents", setCalEvents)} canWrite={canWrite} t={t} />}
-        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} sfNotes={sfNotes} setSfNotes={save("sf2-sfnotes", setSfNotes)} />}
-        {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} prevExpenses={prevExpenses} setPrevExpenses={save("sf2-prevexp", setPrevExpenses)} canWrite={canWrite} />}
-        {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
-        {activeTab === 6 && <EvalTab canWrite={canWrite} />}
-        {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
+        {/* Component de "contingut privat" reutilitzable */}
+        {(() => {
+          const PrivateMsg = () => (
+            <div style={{ textAlign: "center", padding: "80px 20px" }}>
+              <div style={{ fontSize: 56, marginBottom: 16 }}>🔒</div>
+              <div style={{ fontFamily: "DM Serif Display", fontSize: 24, color: C.erasmus, marginBottom: 10 }}>Contingut privat</div>
+              <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>Aquesta secció és accessible només per als usuaris autoritzats.</div>
+              <button onClick={() => setShowAuth(true)} className="btn">Iniciar sessió</button>
+            </div>
+          );
+          const isPrivate = (i) => tabPrivacy[i] && !canWrite;
+          return (
+            <>
+              {activeTab === 0 && <HomeTab t={t} canWrite={canWrite} />}
+              {activeTab === 1 && (canWrite ? <CRMTab contacts={contacts} setContacts={save("sf2-contacts", setContacts)} canWrite={canWrite} t={t} /> : <PrivateMsg />)}
+              {activeTab === 2 && (isPrivate(2) ? <PrivateMsg /> : <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} calEvents={calEvents} setCalEvents={save("sf2-calevents", setCalEvents)} canWrite={canWrite} t={t} />)}
+              {activeTab === 3 && (isPrivate(3) ? <PrivateMsg /> : <SFInfoTab canWrite={canWrite} t={t} sfNotes={sfNotes} setSfNotes={save("sf2-sfnotes", setSfNotes)} />)}
+              {activeTab === 4 && (isPrivate(4) ? <PrivateMsg /> : <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} prevExpenses={prevExpenses} setPrevExpenses={save("sf2-prevexp", setPrevExpenses)} canWrite={canWrite} />)}
+              {activeTab === 5 && (isPrivate(5) ? <PrivateMsg /> : <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />)}
+              {activeTab === 6 && (isPrivate(6) ? <PrivateMsg /> : <EvalTab canWrite={canWrite} />)}
+              {activeTab === 7 && canWrite && <DocsTab docs={docs} setDocs={save("sf2-docs", setDocs)} t={t} />}
+            </>
+          );
+        })()}
       </div>
 
       {/* Footer */}
