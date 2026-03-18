@@ -340,6 +340,7 @@ export default function App() {
   const [boardNotes, setBoardNotes] = useState([]);
   const [docs, setDocs] = useState([]);
   const [calEvents, setCalEvents] = useState(FLIGHT_EVENTS.map((e, i) => ({ ...e, id: i, isPublic: true })));
+  const [sfNotes, setSfNotes] = useState([]);
   const [showAuth, setShowAuth] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const t = T[lang];
@@ -353,6 +354,7 @@ export default function App() {
         const r4 = await window.storage.get("sf2-board", true); if (r4) setBoardNotes(JSON.parse(r4.value));
         const r5 = await window.storage.get("sf2-docs", true); if (r5) setDocs(JSON.parse(r5.value));
         const r6 = await window.storage.get("sf2-calevents", true); if (r6) setCalEvents(JSON.parse(r6.value));
+        const r7 = await window.storage.get("sf2-sfnotes", true); if (r7) setSfNotes(JSON.parse(r7.value));
       } catch (e) {}
     };
     load();
@@ -488,7 +490,7 @@ export default function App() {
           </div>
         )}
         {activeTab === 2 && <CalendarTab boardNotes={boardNotes} setBoard={save("sf2-board", setBoardNotes)} calEvents={calEvents} setCalEvents={save("sf2-calevents", setCalEvents)} canWrite={canWrite} t={t} />}
-        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} />}
+        {activeTab === 3 && <SFInfoTab canWrite={canWrite} t={t} sfNotes={sfNotes} setSfNotes={save("sf2-sfnotes", setSfNotes)} />}
         {activeTab === 4 && <BudgetTab expenses={expenses} setExpenses={save("sf2-expenses", setExpenses)} canWrite={canWrite} />}
         {activeTab === 5 && <DiaryTab entries={diaryEntries} setEntries={save("sf2-diary", setDiaryEntries)} canWrite={canWrite} t={t} />}
         {activeTab === 6 && <EvalTab canWrite={canWrite} />}
@@ -1215,10 +1217,14 @@ function CalendarTab({ boardNotes, setBoard, calEvents, setCalEvents, canWrite, 
 }
 
 // ─── SF INFO ─────────────────────────────────────────────────
-function SFInfoTab({ canWrite, t }) {
+function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
   const [restTab, setRestTab] = useState("breakfast");
-  const [mapSearch, setMapSearch] = useState("");
   const [currency, setCurrency] = useState({ eur: "", usd: "" });
+  const [noteText, setNoteText] = useState("");
+  const [noteUrl, setNoteUrl] = useState("");
+  const [noteFile, setNoteFile] = useState(null);
+  const [noteColor, setNoteColor] = useState("#003DA5");
+  const [notePublic, setNotePublic] = useState(true);
   const rate = 1.085;
 
   const practical = [
@@ -1261,43 +1267,113 @@ function SFInfoTab({ canWrite, t }) {
   };
   const tabLabels = { breakfast: "☀️ Esmorzar", lunch: "🍽️ Dinar", dinner: "🌙 Sopar", tourism: "🗺️ Turisme" };
 
-  const mapUrl = mapSearch ? `https://www.google.com/maps/embed/v1/search?key=AIzaSyD-9tSrke72FloFkd3y-KKSJaC3HFI5Csc&q=${encodeURIComponent(mapSearch + " San Francisco")}` : null;
+  const addNote = () => {
+    if (!noteText.trim() && !noteFile && !noteUrl) return;
+    const note = {
+      id: Date.now(),
+      text: noteText,
+      url: noteUrl,
+      image: noteFile,
+      color: noteColor,
+      isPublic: notePublic,
+      author: "",
+      date: new Date().toLocaleDateString("ca-ES"),
+    };
+    setSfNotes([note, ...sfNotes]);
+    setNoteText(""); setNoteUrl(""); setNoteFile(null);
+  };
+
+  const visibleNotes = sfNotes.filter(n => canWrite || n.isPublic);
 
   return (
     <div>
-      {/* Mapa itinerari — només usuaris autoritzats */}
-      {canWrite && (
-        <div style={{ marginBottom: 24 }}>
-          <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 14, padding: "10px 28px", textDecoration: "none" }}>
-            🗺️ Itinerari
-          </a>
-        </div>
-      )}
+      {/* Botó itinerari — visible per a tothom */}
+      <div style={{ marginBottom: 20 }}>
+        <a href="https://maps.app.goo.gl/mbndaH2arNdg6oaHA" target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 14, padding: "10px 28px", textDecoration: "none" }}>
+          🗺️ Itinerari
+        </a>
+      </div>
 
-      {/* Map search */}
-      <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.teal}` }}>
-        <div style={{ fontFamily: "DM Serif Display", fontSize: 20, color: C.teal, marginBottom: 12 }}>🔍 Cercador de llocs — San Francisco</div>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-          <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Cerca un restaurant, lloc turístic, carrer..." value={mapSearch} onChange={e => setMapSearch(e.target.value)} />
-          {mapSearch && <button className="btn btn-ghost" onClick={() => setMapSearch("")}>Netejar</button>}
-        </div>
-        {mapSearch ? (
-          <div style={{ borderRadius: 10, overflow: "hidden", height: 320, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, border: `1px solid ${C.border}` }}>
-            <div style={{ fontSize: 40 }}>🗺️</div>
-            <div style={{ fontWeight: 700, color: C.erasmus }}>Obertura Google Maps</div>
-            <div style={{ fontSize: 13, color: C.muted, textAlign: "center", maxWidth: 320 }}>Per privacitat de l'API, el mapa s'obre directament a Google Maps.</div>
-            <a href={`https://www.google.com/maps/search/${encodeURIComponent(mapSearch + " San Francisco, CA")}`} target="_blank" rel="noopener noreferrer" className="btn">Obrir a Google Maps 🔗</a>
-          </div>
-        ) : (
-          <div style={{ background: C.bg, borderRadius: 10, padding: 24, textAlign: "center", color: C.light, border: `1px dashed ${C.border}` }}>
-            Escriu un lloc per obrir-lo a Google Maps
+      {/* Pissarra de suggeriments */}
+      <div className="card shadow" style={{ marginBottom: 28, borderTop: `4px solid ${C.teal}` }}>
+        <div style={{ fontFamily: "DM Serif Display", fontSize: 20, color: C.teal, marginBottom: 4 }}>📌 Pissarra de suggeriments</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Comparteix idees, llocs per visitar, restaurants, consells... Tothom ho pot veure (si és públic).</div>
+
+        {/* Formulari — només usuaris */}
+        {canWrite && (
+          <div style={{ background: C.bg, borderRadius: 10, padding: 16, marginBottom: 20, border: `1px solid ${C.border}` }}>
+            <textarea
+              className="input" rows="3" placeholder="Escriu un suggeriment, idea o lloc per visitar..."
+              value={noteText} onChange={e => setNoteText(e.target.value)}
+              style={{ width: "100%", marginBottom: 10 }}
+            />
+            {/* URL */}
+            <input className="input" placeholder="🔗 URL (opcional)" value={noteUrl} onChange={e => setNoteUrl(e.target.value)} style={{ marginBottom: 10 }} />
+            {/* Foto */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600 }}>
+                📁 Afegir foto
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = ev => setNoteFile(ev.target.result);
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.green, fontWeight: 600 }}>
+                📸 Fer foto
+                <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = ev => setNoteFile(ev.target.result);
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+              {noteFile && (
+                <>
+                  <img src={noteFile} alt="preview" style={{ height: 48, borderRadius: 6, border: `1px solid ${C.border}` }} />
+                  <button onClick={() => setNoteFile(null)} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
+                </>
+              )}
+            </div>
+            {/* Color i visibilitat */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[C.erasmus, C.teal, C.green, C.orange, "#E11D74", "#7C3AED"].map(col => (
+                  <div key={col} onClick={() => setNoteColor(col)} style={{ width: 24, height: 24, borderRadius: "50%", background: col, cursor: "pointer", border: noteColor === col ? "3px solid #1E293B" : "3px solid transparent" }} />
+                ))}
+              </div>
+              <button onClick={() => setNotePublic(!notePublic)} style={{ background: notePublic ? "#DCFCE7" : "#F1F5F9", border: `1px solid ${notePublic ? "#BBF7D0" : C.border}`, color: notePublic ? C.green : C.muted, borderRadius: 8, padding: "5px 14px", cursor: "pointer", fontSize: 12, fontFamily: "DM Sans, sans-serif", fontWeight: 600 }}>
+                {notePublic ? "👁️ Públic" : "🔒 Privat"}
+              </button>
+              <button className="btn" onClick={addNote} style={{ marginLeft: "auto" }}>Publicar</button>
+            </div>
           </div>
         )}
-        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-          {["La Cocina SF", "SFUSD 750 25th Ave", "Hotel Carlton Nob Hill", "Ferry Building", "Golden Gate Bridge"].map(s => (
-            <button key={s} onClick={() => setMapSearch(s)} style={{ padding: "4px 12px", borderRadius: 16, background: C.erasmusLight, color: C.erasmus, border: `1px solid ${C.erasmus}33`, cursor: "pointer", fontSize: 12, fontFamily: "DM Sans" }}>{s}</button>
-          ))}
-        </div>
+
+        {/* Post-its */}
+        {visibleNotes.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "32px 20px", color: C.light, border: `1px dashed ${C.border}`, borderRadius: 10 }}>
+            Encara no hi ha suggeriments. {canWrite ? "Sigues el primer!" : ""}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+            {visibleNotes.map(n => (
+              <div key={n.id} style={{ background: `${n.color}15`, border: `2px solid ${n.color}44`, borderRadius: 12, padding: 16, position: "relative" }}>
+                {canWrite && (
+                  <button onClick={() => setSfNotes(sfNotes.filter(x => x.id !== n.id))} style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", color: C.light, cursor: "pointer", fontSize: 14 }}>✕</button>
+                )}
+                {!n.isPublic && <div style={{ fontSize: 10, color: C.muted, marginBottom: 6 }}>🔒 Privat</div>}
+                {n.text && <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, marginBottom: n.image || n.url ? 10 : 0 }}>{n.text}</div>}
+                {n.image && <img src={n.image} alt="" style={{ width: "100%", borderRadius: 8, marginBottom: n.url ? 8 : 0 }} />}
+                {n.url && <a href={n.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: n.color, fontWeight: 600, wordBreak: "break-all" }}>🔗 {n.url}</a>}
+                <div style={{ fontSize: 10, color: C.light, marginTop: 8 }}>{n.date}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Practical */}
