@@ -1454,13 +1454,14 @@ function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
 
 // ─── BUDGET ──────────────────────────────────────────────────
 function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWrite }) {
-  const [form, setForm] = useState({ date: "", place: "", amount: "", persons: [PARTICIPANTS[0].name], category: "Menjar" });
+  const [form, setForm] = useState({ date: "", place: "", amount: "", comment: "", persons: PARTICIPANTS.map(p => p.name), category: "Menjar" });
   const [filterPerson, setFilterPerson] = useState("Tots");
   const [filterCat, setFilterCat] = useState("Totes");
   const [prevEditing, setPrevEditing] = useState(null);
 
   const categories = ["Menjar", "Transport", "Lleure", "Altres"];
   const catColors = { Menjar: C.orange, Transport: C.erasmus, Lleure: C.green, Altres: "#8B5CF6" };
+  const purple = "#7C3AED";
 
   const togglePerson = (name) => {
     const cur = form.persons;
@@ -1472,9 +1473,18 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
     if (!form.date || !form.place || !form.amount || !canWrite) return;
     const totalAmount = parseFloat(form.amount);
     const perPerson = totalAmount / form.persons.length;
-    const newEntries = form.persons.map(person => ({ id: Date.now() + Math.random(), date: form.date, place: form.place, amount: parseFloat(perPerson.toFixed(2)), person, category: form.category, shared: form.persons.length > 1 ? `Compartida ${form.persons.length}p` : null }));
+    const newEntries = form.persons.map(person => ({
+      id: Date.now() + Math.random(), date: form.date, place: form.place,
+      amount: parseFloat(perPerson.toFixed(2)), person, category: form.category,
+      comment: form.comment,
+      shared: form.persons.length > 1 ? `Compartida ${form.persons.length}p` : null
+    }));
     setExpenses([...expenses, ...newEntries]);
-    setForm({ date: form.date, place: "", amount: "", persons: form.persons, category: form.category });
+    setForm({ ...form, place: "", amount: "", comment: "" });
+  };
+
+  const addPrevRow = () => {
+    setPrevExpenses([...prevExpenses, { id: Date.now(), label: "Nova despesa prèvia", amount: 0, persons: PARTICIPANTS.map(p => p.name) }]);
   };
 
   const filtered = expenses.filter(e => (filterPerson === "Tots" || e.person === filterPerson) && (filterCat === "Totes" || e.category === filterCat));
@@ -1492,13 +1502,110 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
   const byPerson = PARTICIPANTS.map(p => ({ ...p, total: expenses.filter(e => e.person === p.name).reduce((s, e) => s + e.amount, 0) }));
   const byCatTotal = categories.map(c => ({ cat: c, total: expenses.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0) }));
   const prevTotalPerPerson = (name) => prevExpenses.reduce((s, pe) => pe.persons.includes(name) && pe.amount > 0 ? s + pe.amount : s, 0);
+  const durantPerPerson = (name) => expenses.filter(e => e.person === name).reduce((s, e) => s + e.amount, 0);
+
+  // Dades gràfic de sectors: categories + prev categories
+  const prevCatTotals = [
+    { label: "ESTA", total: prevExpenses.filter(p => p.label.includes("ESTA")).reduce((s,p) => s + p.amount * p.persons.length, 0), color: purple },
+    { label: "Vols+Allotj.", total: prevExpenses.filter(p => p.label.includes("Vols") || p.label.includes("Allotjament")).reduce((s,p) => s + p.amount * p.persons.length, 0), color: C.erasmus },
+    { label: "Transfers", total: prevExpenses.filter(p => p.label.includes("Transfer")).reduce((s,p) => s + p.amount * p.persons.length, 0), color: C.teal },
+    { label: "Altres prev.", total: prevExpenses.filter(p => !p.label.includes("ESTA") && !p.label.includes("Vols") && !p.label.includes("Allotjament") && !p.label.includes("Transfer")).reduce((s,p) => s + p.amount * p.persons.length, 0), color: "#E11D74" },
+    ...categories.map(c => ({ label: c, total: byCatTotal.find(x => x.cat === c)?.total || 0, color: catColors[c] })),
+  ].filter(d => d.total > 0);
+  const pieTotal = prevCatTotals.reduce((s, d) => s + d.total, 0);
+
+  // Exportar a Excel (CSV)
+  const exportExcel = () => {
+    const rows = [];
+    rows.push(["DESPESES PRÈVIES"]);
+    rows.push(["Concepte","Import/persona","Participants","Total"]);
+    prevExpenses.forEach(pe => rows.push([pe.label, pe.amount.toFixed(2)+"€", pe.persons.join(", "), (pe.amount*pe.persons.length).toFixed(2)+"€"]));
+    rows.push([]);
+    rows.push(["DESPESES DURANT LA MOBILITAT"]);
+    rows.push(["Data","Lloc","Persona","Categoria","Import","Comentari","Compartida"]);
+    expenses.sort((a,b) => new Date(a.date)-new Date(b.date)).forEach(e => rows.push([e.date, e.place, e.person, e.category, e.amount.toFixed(2)+"€", e.comment||"", e.shared||""]));
+    rows.push([]);
+    rows.push(["RESUM PER PERSONA"]);
+    rows.push(["Participant","Prèvies","Durant mobilitat","TOTAL"]);
+    PARTICIPANTS.forEach(p => rows.push([p.name, prevTotalPerPerson(p.name).toFixed(2)+"€", durantPerPerson(p.name).toFixed(2)+"€", (prevTotalPerPerson(p.name)+durantPerPerson(p.name)).toFixed(2)+"€"]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF"+csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "pressupost_SF_2026.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div>
-      <div className="section-title">Control de Pressupost</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div className="section-title" style={{ marginBottom: 0 }}>Control de Pressupost</div>
+        <button onClick={exportExcel} style={{ background: "#16A34A", color: "white", border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "DM Sans, sans-serif", display: "flex", alignItems: "center", gap: 6 }}>
+          📥 Exportar Excel
+        </button>
+      </div>
+
+      {/* 1. DESPESES PRÈVIES */}
+      <div className="section-title" style={{ color: purple }}>Despeses prèvies al viatge</div>
+      <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>Pagades abans de la sortida. Clica ✏️ per editar. Pots afegir files noves.</div>
+      <div className="card shadow" style={{ padding: 0, overflow: "auto", marginBottom: 8 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 700 }}>
+          <thead>
+            <tr style={{ background: purple }}>
+              <th style={{ padding: "10px 16px", textAlign: "left", color: "white", fontWeight: 700 }}>Concepte</th>
+              <th style={{ padding: "10px 12px", color: "white", fontWeight: 700, textAlign: "right" }}>Import/p.</th>
+              {PARTICIPANTS.map(p => <th key={p.id} style={{ padding: "10px 8px", color: "white", fontWeight: 600, textAlign: "center", fontSize: 11 }}>{p.emoji}<br/>{p.name.split(" ")[0]}</th>)}
+              <th style={{ padding: "10px 14px", color: "white", fontWeight: 800, textAlign: "right" }}>TOTAL</th>
+              {canWrite && <th style={{ padding: "10px 8px", color: "rgba(255,255,255,0.6)", textAlign: "center", fontSize: 11 }}>✏️</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {prevExpenses.map((pe, idx) => (
+              <tr key={pe.id} style={{ background: idx%2===0?"white":"#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
+                <td style={{ padding: "9px 16px", fontWeight: 600 }}>
+                  {prevEditing===pe.id ? <input className="input" value={pe.label} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,label:e.target.value}:x))} style={{ fontSize: 12 }} /> : pe.label}
+                </td>
+                <td style={{ padding: "9px 12px", textAlign: "right", fontWeight: 700, color: purple }}>
+                  {prevEditing===pe.id ? <input className="input" type="number" value={pe.amount} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,amount:parseFloat(e.target.value)||0}:x))} style={{ width: 80, fontSize: 12 }} /> : `${pe.amount.toFixed(2)}€`}
+                </td>
+                {PARTICIPANTS.map(p => (
+                  <td key={p.id} style={{ padding: "9px 8px", textAlign: "center" }}>
+                    {prevEditing===pe.id
+                      ? <input type="checkbox" checked={pe.persons.includes(p.name)} onChange={() => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,persons:x.persons.includes(p.name)?x.persons.filter(n=>n!==p.name):[...x.persons,p.name]}:x))} />
+                      : pe.persons.includes(p.name) ? <span style={{ color: purple, fontWeight: 700, fontSize: 12 }}>{pe.amount.toFixed(2)}€</span> : <span style={{ color: C.light }}>—</span>}
+                  </td>
+                ))}
+                <td style={{ padding: "9px 14px", textAlign: "right", fontWeight: 800, color: purple }}>{(pe.amount*pe.persons.length).toFixed(2)}€</td>
+                {canWrite && <td style={{ padding: "9px 8px", textAlign: "center" }}>
+                  <div style={{ display: "flex", gap: 4", justifyContent: "center" }}>
+                    {prevEditing===pe.id
+                      ? <button onClick={() => setPrevEditing(null)} style={{ background: C.green, color: "white", border: "none", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 11 }}>✓</button>
+                      : <button onClick={() => setPrevEditing(pe.id)} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 11, color: C.muted }}>✏️</button>}
+                    <button onClick={() => setPrevExpenses(prevExpenses.filter(x=>x.id!==pe.id))} style={{ background: "#FEF2F2", border: `1px solid #FECACA`, color: C.red, borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 11, marginLeft: 2 }}>✕</button>
+                  </div>
+                </td>}
+              </tr>
+            ))}
+            <tr style={{ background: "#EDE9FE", borderTop: `2px solid ${purple}` }}>
+              <td style={{ padding: "10px 16px", fontWeight: 800, color: purple }}>TOTAL PREVI</td>
+              <td />
+              {PARTICIPANTS.map(p => <td key={p.id} style={{ padding: "10px 8px", textAlign: "center", fontWeight: 800, color: purple }}>{prevTotalPerPerson(p.name).toFixed(2)}€</td>)}
+              <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 900, color: purple, fontSize: 15 }}>{prevExpenses.reduce((s,pe)=>s+pe.amount*pe.persons.length,0).toFixed(2)}€</td>
+              {canWrite && <td />}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {canWrite && (
+        <button onClick={addPrevRow} style={{ marginBottom: 32, background: "#EDE9FE", border: `1.5px dashed ${purple}`, color: purple, borderRadius: 8, padding: "7px 18px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "DM Sans, sans-serif" }}>
+          + Afegir fila
+        </button>
+      )}
+
+      {/* 2. DESPESES DURANT LA MOBILITAT */}
+      <div className="section-title">Despeses durant la mobilitat</div>
 
       {canWrite && (
-        <div className="card shadow" style={{ marginBottom: 24, borderTop: `4px solid ${C.orange}` }}>
+        <div className="card shadow" style={{ marginBottom: 20, borderTop: `4px solid ${C.orange}` }}>
           <div style={{ fontWeight: 700, marginBottom: 14, color: C.orange }}>+ Registrar despesa</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 12 }}>
             {[["Data","date","date"],["Lloc / Comerç","place","text"],["Import TOTAL (€)","amount","number"]].map(([l,k,tp]) => (
@@ -1512,6 +1619,10 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
               <select className="select" style={{ width: "100%" }} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                 {categories.map(c => <option key={c}>{c}</option>)}
               </select>
+            </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Comentari (opcional)</label>
+              <input className="input" placeholder="Ex: sopar de grup, entrada museu..." value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} />
             </div>
           </div>
           <div style={{ marginBottom: 12 }}>
@@ -1532,9 +1643,10 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
         </div>
       )}
 
-      <div className="grid-2" style={{ marginBottom: 24 }}>
+      {/* Stats per persona i categoria */}
+      <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="card shadow">
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 12 }}>Per persona (viatge)</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 12 }}>Per persona (mobilitat)</div>
           {byPerson.map(p => (
             <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <span style={{ fontSize: 18 }}>{p.emoji}</span>
@@ -1560,13 +1672,14 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
           ))}
           <hr />
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 16 }}>
-            <span style={{ color: C.text }}>TOTAL viatge</span>
+            <span style={{ color: C.text }}>TOTAL mobilitat</span>
             <span style={{ color: C.orange }}>{expenses.reduce((s,e)=>s+e.amount,0).toFixed(2)}€</span>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+      {/* Llista de despeses */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
         <select className="select" value={filterPerson} onChange={e => setFilterPerson(e.target.value)}>
           <option>Tots</option>
           {PARTICIPANTS.map(p => <option key={p.id}>{p.name}</option>)}
@@ -1575,26 +1688,26 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
           <option>Totes</option>
           {categories.map(c => <option key={c}>{c}</option>)}
         </select>
-        <div style={{ marginLeft: "auto", fontWeight: 800, fontSize: 17, color: C.orange }}>Filtrat: {total.toFixed(2)}€</div>
+        <div style={{ marginLeft: "auto", fontWeight: 800, fontSize: 16, color: C.orange }}>Filtrat: {total.toFixed(2)}€</div>
       </div>
-
       {filtered.length > 0 && (
         <div className="card shadow" style={{ padding: 0, overflow: "hidden", marginBottom: 32 }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ background: "#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
-                {["Data","Lloc","Persona","Categoria","Import",""].map(h => <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontWeight: 700, color: C.muted, fontSize: 11 }}>{h}</th>)}
+                {["Data","Lloc","Persona","Cat.","Import","Comentari",""].map(h => <th key={h} style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700, color: C.muted, fontSize: 11 }}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filtered.sort((a,b) => new Date(b.date)-new Date(a.date)).map(e => (
                 <tr key={e.id} style={{ borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 16px", color: C.muted, fontSize: 12 }}>{fmtDate(e.date)}</td>
-                  <td style={{ padding: "10px 16px", fontWeight: 500 }}>{e.place}{e.shared && <span style={{ fontSize: 10, color: C.teal, marginLeft: 6, background: `${C.teal}15`, padding: "1px 6px", borderRadius: 4 }}>{e.shared}</span>}</td>
-                  <td style={{ padding: "10px 16px", color: C.muted, fontSize: 12 }}>{e.person.split(" ")[0]}</td>
-                  <td style={{ padding: "10px 16px" }}><span className="badge" style={{ background: `${catColors[e.category]}18`, color: catColors[e.category], borderColor: `${catColors[e.category]}44` }}>{e.category}</span></td>
-                  <td style={{ padding: "10px 16px", fontWeight: 700, color: C.orange }}>{e.amount.toFixed(2)}€</td>
-                  <td style={{ padding: "10px 16px" }}>{canWrite && <button onClick={() => setExpenses(expenses.filter(x=>x.id!==e.id))} style={{ background: "#FEF2F2", border: `1px solid #FECACA`, color: C.red, padding: "3px 10px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>✕</button>}</td>
+                  <td style={{ padding: "9px 12px", color: C.muted, fontSize: 12 }}>{fmtDate(e.date)}</td>
+                  <td style={{ padding: "9px 12px", fontWeight: 500 }}>{e.place}{e.shared && <span style={{ fontSize: 10, color: C.teal, marginLeft: 6, background: `${C.teal}15`, padding: "1px 5px", borderRadius: 4 }}>{e.shared}</span>}</td>
+                  <td style={{ padding: "9px 12px", color: C.muted, fontSize: 12 }}>{e.person.split(" ")[0]}</td>
+                  <td style={{ padding: "9px 12px" }}><span className="badge" style={{ background: `${catColors[e.category]}18`, color: catColors[e.category], borderColor: `${catColors[e.category]}44`, fontSize: 10 }}>{e.category}</span></td>
+                  <td style={{ padding: "9px 12px", fontWeight: 700, color: C.orange, whiteSpace: "nowrap" }}>{e.amount.toFixed(2)}€</td>
+                  <td style={{ padding: "9px 12px", fontSize: 12, color: C.muted }}>{e.comment || "—"}</td>
+                  <td style={{ padding: "9px 12px" }}>{canWrite && <button onClick={() => setExpenses(expenses.filter(x=>x.id!==e.id))} style={{ background: "#FEF2F2", border: `1px solid #FECACA`, color: C.red, padding: "2px 8px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>✕</button>}</td>
                 </tr>
               ))}
             </tbody>
@@ -1602,61 +1715,14 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
         </div>
       )}
 
-      <div className="section-title">Resum despeses prèvies al viatge</div>
-      <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Despeses pagades abans de la sortida. Clica ✏️ per editar import i participants.</div>
-      <div className="card shadow" style={{ padding: 0, overflow: "auto", marginBottom: 32 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 700 }}>
-          <thead>
-            <tr style={{ background: "#7C3AED" }}>
-              <th style={{ padding: "10px 16px", textAlign: "left", color: "white", fontWeight: 700 }}>Concepte</th>
-              <th style={{ padding: "10px 12px", color: "white", fontWeight: 700, textAlign: "right" }}>Import/p.</th>
-              {PARTICIPANTS.map(p => <th key={p.id} style={{ padding: "10px 10px", color: "white", fontWeight: 600, textAlign: "center", fontSize: 11 }}>{p.emoji}<br/>{p.name.split(" ")[0]}</th>)}
-              <th style={{ padding: "10px 14px", color: "white", fontWeight: 800, textAlign: "right" }}>TOTAL</th>
-              {canWrite && <th style={{ padding: "10px 10px", color: "rgba(255,255,255,0.6)", textAlign: "center", fontSize: 11 }}>Editar</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {prevExpenses.map((pe, idx) => (
-              <tr key={pe.id} style={{ background: idx%2===0?"white":"#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
-                <td style={{ padding: "10px 16px", fontWeight: 600 }}>
-                  {prevEditing===pe.id ? <input className="input" value={pe.label} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,label:e.target.value}:x))} style={{ fontSize: 12 }} /> : pe.label}
-                </td>
-                <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#7C3AED" }}>
-                  {prevEditing===pe.id ? <input className="input" type="number" value={pe.amount} onChange={e => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,amount:parseFloat(e.target.value)||0}:x))} style={{ width: 80, fontSize: 12 }} /> : `${pe.amount.toFixed(2)}€`}
-                </td>
-                {PARTICIPANTS.map(p => (
-                  <td key={p.id} style={{ padding: "10px 10px", textAlign: "center" }}>
-                    {prevEditing===pe.id
-                      ? <input type="checkbox" checked={pe.persons.includes(p.name)} onChange={() => setPrevExpenses(prevExpenses.map(x=>x.id===pe.id?{...x,persons:x.persons.includes(p.name)?x.persons.filter(n=>n!==p.name):[...x.persons,p.name]}:x))} />
-                      : pe.persons.includes(p.name) ? <span style={{ color: "#7C3AED", fontWeight: 700 }}>{pe.amount.toFixed(2)}€</span> : <span style={{ color: C.light }}>—</span>}
-                  </td>
-                ))}
-                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 800, color: "#7C3AED" }}>{(pe.amount*pe.persons.length).toFixed(2)}€</td>
-                {canWrite && <td style={{ padding: "10px 10px", textAlign: "center" }}>
-                  {prevEditing===pe.id
-                    ? <button onClick={() => setPrevEditing(null)} style={{ background: C.green, color: "white", border: "none", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 11 }}>✓</button>
-                    : <button onClick={() => setPrevEditing(pe.id)} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.muted }}>✏️</button>}
-                </td>}
-              </tr>
-            ))}
-            <tr style={{ background: "#EDE9FE", borderTop: `2px solid #7C3AED` }}>
-              <td style={{ padding: "11px 16px", fontWeight: 800, color: "#7C3AED" }}>TOTAL PREVI</td>
-              <td />
-              {PARTICIPANTS.map(p => <td key={p.id} style={{ padding: "11px 10px", textAlign: "center", fontWeight: 800, color: "#7C3AED" }}>{prevTotalPerPerson(p.name).toFixed(2)}€</td>)}
-              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 900, color: "#7C3AED", fontSize: 15 }}>{prevExpenses.reduce((s,pe)=>s+pe.amount*pe.persons.length,0).toFixed(2)}€</td>
-              {canWrite && <td />}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
+      {/* Tresoreria diària */}
       <div className="section-title">Taula de Tresoreria diària</div>
-      <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Despeses durant el viatge. Valors en euros (€).</div>
-      <div className="card shadow" style={{ padding: 0, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 600 }}>
+      <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>Despeses durant el viatge per dia. Valors en euros (€).</div>
+      <div className="card shadow" style={{ padding: 0, overflow: "auto", marginBottom: 32 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 500 }}>
           <thead>
             <tr style={{ background: C.erasmus }}>
-              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700, whiteSpace: "nowrap" }}>Dia</th>
+              <th style={{ padding: "10px 14px", textAlign: "left", color: "white", fontWeight: 700 }}>Dia</th>
               {categories.map(c => <th key={c} style={{ padding: "10px 12px", color: "white", fontWeight: 700, textAlign: "right" }}>{c}</th>)}
               <th style={{ padding: "10px 14px", color: "white", fontWeight: 800, textAlign: "right" }}>TOTAL DIA</th>
               <th style={{ padding: "10px 14px", color: "rgba(255,255,255,0.8)", fontWeight: 700, textAlign: "right" }}>Acumulat</th>
@@ -1677,14 +1743,92 @@ function BudgetTab({ expenses, setExpenses, prevExpenses, setPrevExpenses, canWr
               );
             })}
             <tr style={{ background: C.erasmusLight, borderTop: `2px solid ${C.erasmus}` }}>
-              <td style={{ padding: "11px 14px", fontWeight: 800, color: C.erasmus }}>TOTAL</td>
-              {categories.map(c => { const tv=byDay.reduce((s,r)=>s+r.byCat[c],0); return <td key={c} style={{ padding: "11px 12px", textAlign: "right", fontWeight: 800, color: tv>0?catColors[c]:C.light }}>{tv>0?tv.toFixed(2)+"€":"—"}</td>; })}
-              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 900, color: C.orange, fontSize: 15 }}>{grandTotal.toFixed(2)}€</td>
-              <td style={{ padding: "11px 14px" }} />
+              <td style={{ padding: "10px 14px", fontWeight: 800, color: C.erasmus }}>TOTAL</td>
+              {categories.map(c => { const tv=byDay.reduce((s,r)=>s+r.byCat[c],0); return <td key={c} style={{ padding: "10px 12px", textAlign: "right", fontWeight: 800, color: tv>0?catColors[c]:C.light }}>{tv>0?tv.toFixed(2)+"€":"—"}</td>; })}
+              <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 900, color: C.orange, fontSize: 14 }}>{grandTotal.toFixed(2)}€</td>
+              <td />
             </tr>
           </tbody>
         </table>
       </div>
+
+      {/* 3. RESUM TOTAL PER PERSONA */}
+      <div className="section-title">Resum total per persona</div>
+      <div className="card shadow" style={{ padding: 0, overflow: "auto", marginBottom: 32 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ background: C.text }}>
+              <th style={{ padding: "10px 16px", textAlign: "left", color: "white", fontWeight: 700 }}>Participant</th>
+              <th style={{ padding: "10px 14px", color: "white", fontWeight: 700, textAlign: "right" }}>Prèvies</th>
+              <th style={{ padding: "10px 14px", color: "white", fontWeight: 700, textAlign: "right" }}>Mobilitat</th>
+              <th style={{ padding: "10px 14px", color: "#FFED00", fontWeight: 800, textAlign: "right" }}>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {PARTICIPANTS.map((p, idx) => {
+              const prev = prevTotalPerPerson(p.name);
+              const durant = durantPerPerson(p.name);
+              return (
+                <tr key={p.id} style={{ background: idx%2===0?"white":"#F8FAFC", borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: "11px 16px", fontWeight: 600 }}>{p.emoji} {p.name.split(" ")[0]}</td>
+                  <td style={{ padding: "11px 14px", textAlign: "right", color: purple, fontWeight: 600 }}>{prev.toFixed(2)}€</td>
+                  <td style={{ padding: "11px 14px", textAlign: "right", color: C.orange, fontWeight: 600 }}>{durant.toFixed(2)}€</td>
+                  <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 800, color: C.text, fontSize: 14 }}>{(prev+durant).toFixed(2)}€</td>
+                </tr>
+              );
+            })}
+            <tr style={{ background: "#1E293B", borderTop: `2px solid ${C.text}` }}>
+              <td style={{ padding: "11px 16px", fontWeight: 800, color: "white" }}>TOTAL GLOBAL</td>
+              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 800, color: "#C4B5FD" }}>{prevExpenses.reduce((s,pe)=>s+pe.amount*pe.persons.length,0).toFixed(2)}€</td>
+              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 800, color: "#FCD34D" }}>{expenses.reduce((s,e)=>s+e.amount,0).toFixed(2)}€</td>
+              <td style={{ padding: "11px 14px", textAlign: "right", fontWeight: 900, color: "#FFED00", fontSize: 16 }}>{(prevExpenses.reduce((s,pe)=>s+pe.amount*pe.persons.length,0)+expenses.reduce((s,e)=>s+e.amount,0)).toFixed(2)}€</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* 4. GRÀFIC DE SECTORS */}
+      {pieTotal > 0 && (
+        <div className="card shadow" style={{ marginBottom: 24 }}>
+          <div className="section-title" style={{ marginBottom: 16 }}>Distribució de despeses</div>
+          <div style={{ display: "flex", gap: 32, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              {(() => {
+                let startAngle = -Math.PI / 2;
+                return prevCatTotals.map((d, i) => {
+                  const pct = d.total / pieTotal;
+                  const angle = pct * 2 * Math.PI;
+                  const x1 = 100 + 90 * Math.cos(startAngle);
+                  const y1 = 100 + 90 * Math.sin(startAngle);
+                  startAngle += angle;
+                  const x2 = 100 + 90 * Math.cos(startAngle);
+                  const y2 = 100 + 90 * Math.sin(startAngle);
+                  const large = angle > Math.PI ? 1 : 0;
+                  return (
+                    <path key={i}
+                      d={`M100,100 L${x1},${y1} A90,90 0 ${large},1 ${x2},${y2} Z`}
+                      fill={d.color} stroke="white" strokeWidth="2"
+                    />
+                  );
+                });
+              })()}
+              <circle cx="100" cy="100" r="40" fill="white" />
+              <text x="100" y="96" textAnchor="middle" fontSize="11" fill={C.muted} fontWeight="600">TOTAL</text>
+              <text x="100" y="113" textAnchor="middle" fontSize="12" fill={C.text} fontWeight="800">{pieTotal.toFixed(0)}€</text>
+            </svg>
+            <div style={{ display: "grid", gap: 8 }}>
+              {prevCatTotals.map(d => (
+                <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: 3, background: d.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: C.text, minWidth: 100 }}>{d.label}</span>
+                  <span style={{ fontWeight: 700, color: d.color }}>{d.total.toFixed(2)}€</span>
+                  <span style={{ fontSize: 11, color: C.muted }}>({((d.total/pieTotal)*100).toFixed(1)}%)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
