@@ -71,21 +71,33 @@ const INITIAL_CONTACTS = [
 ];
 
 const FLIGHT_EVENTS = [
-  { date: "2026-04-10", time: "06:40", title: "✈️ Sortida BCN Terminal 1 → Frankfurt (UA9317 op. Lufthansa)", type: "flight" },
-  { date: "2026-04-10", time: "08:50", title: "🛬 Arribada Frankfurt – escala 1h35m", type: "flight" },
-  { date: "2026-04-10", time: "10:25", title: "✈️ Sortida Frankfurt → SFO Terminal I (UA8829 op. Lufthansa)", type: "flight" },
-  { date: "2026-04-10", time: "12:40", title: "🛬 Arribada SFO – Check-in Hotel Carlton Nob Hill", type: "arrive" },
-  { date: "2026-04-14", time: "09:30", title: "🤝 Reunió Erin Deis – SFUSD, 750 25th Ave, 2n pis", type: "meeting" },
-  { date: "2026-04-17", time: "09:00", title: "🏆 Business Pathway Competition – NFTE + SFUSD (Galileo & Lincoln HS)", type: "event" },
-  { date: "2026-04-17", time: "14:30", title: "🎖️ Cerimònia de premis Business Pathway Competition", type: "event" },
-  { date: "2026-04-18", time: "12:10", title: "✈️ Sortida SFO Terminal 3 → Chicago O'Hare (UA1394 op. United)", type: "flight" },
-  { date: "2026-04-18", time: "18:43", title: "🛬 Arribada Chicago – escala 2h57m", type: "flight" },
-  { date: "2026-04-18", time: "21:40", title: "✈️ Sortida Chicago → BCN Terminal 1 (UA769 op. United)", type: "flight" },
-  { date: "2026-04-19", time: "13:15", title: "🏠 Arribada BCN Terminal 1", type: "arrive" },
-  { date: "2026-04-13", time: "09:30", title: "🎓 Campus Walking Tour UC Berkeley – Koret Visitor Center (conf. 414071)", type: "meeting" },
-  { date: "2026-04-15", time: "14:15", title: "🎓 Campus Tour CCSF Ocean Campus – Student Success Center, 50 Frida Kahlo Way", type: "meeting" },
-  { date: "2026-04-16", time: "10:00", title: "🎓 Visita Foothill+De Anza Colleges (FHDA) – per confirmar amb Marilyn Cheung", type: "pending" },
-  { date: "2026-04-15", time: "10:00", title: "🍴 Tour La Cocina SF (per confirmar dia)", type: "pending" },
+  // DIVENDRES 10 ABRIL - Sortida
+  { date: "2026-04-10", time: "02:45", title: "🚌 Recollida a Blanes (Brico Kirin) — trasllat T1 Barcelona", type: "arrive" },
+  { date: "2026-04-10", time: "06:20", title: "✈️ Vol Delta DL9442 BCN → Amsterdam (AMS)", type: "flight" },
+  { date: "2026-04-10", time: "11:45", title: "🛬 Arribada San Francisco SFO (Vol DL9380 des d'Amsterdam)", type: "arrive" },
+  { date: "2026-04-10", time: "12:15", title: "🚗 Trasllat privat al FOUND Hotel Carlton (Sutter St) — conductor amb cartell", type: "arrive" },
+  // DIUMENGE 12 ABRIL - Alcatraz
+  { date: "2026-04-12", time: "10:05", title: "⏰ Hora límit arribada control seguretat Alcatraz (Pier 33)", type: "event" },
+  { date: "2026-04-12", time: "10:35", title: "⛵ Ferri Alcatraz Day Tour — Pier 33, SF. Conf: 73308186", type: "event" },
+  // DILLUNS 13 ABRIL - UC Berkeley
+  { date: "2026-04-13", time: "09:30", title: "🎓 Campus Walking Tour UC Berkeley — Koret Visitor Center (2207 Piedmont Ave)", type: "meeting" },
+  // DIMARTS 14 ABRIL - SFUSD i CCSF
+  { date: "2026-04-14", time: "09:30", title: "🤝 Reunió Erin Deis — SFUSD, 750 25th Ave (fins 11:30h)", type: "meeting" },
+  { date: "2026-04-14", time: "13:15", title: "🎓 Visita campus City College of San Francisco (CCSF)", type: "meeting" },
+  // DIMECRES 15 ABRIL - Foothill College i Stanford
+  { date: "2026-04-15", time: "09:00", title: "🏫 Visita oficial Foothill College — Building 1900, Los Altos Hills (fins 11:30h)", type: "meeting" },
+  { date: "2026-04-15", time: "09:00", title: "📋 Agenda Foothill: Benvinguda M. Cheung · VP Teresa Ong · Tour campus", type: "meeting" },
+  { date: "2026-04-15", time: "12:00", title: "🎓 Parents & Supporters Forum — Stanford University, 295 Galvez St", type: "event" },
+  // DIJOUS 16 ABRIL - Abraham Lincoln HS
+  { date: "2026-04-16", time: "12:39", title: "🏫 Observació Business Program — Abraham Lincoln High School (fins 14:09h)", type: "meeting" },
+  // DIVENDRES 17 ABRIL - Competició
+  { date: "2026-04-17", time: "09:00", title: "🏆 Business Pathway Competition — Marriott Marquis Hotel, Downtown SF (fins 15:00h)", type: "event" },
+  // DISSABTE 18 ABRIL - Retorn
+  { date: "2026-04-18", time: "04:00", title: "🚗 Trasllat hotel → Aeroport San Francisco (SFO)", type: "arrive" },
+  { date: "2026-04-18", time: "07:00", title: "✈️ Vol Delta DL405 SFO → Barcelona (escala Nova York-JFK)", type: "flight" },
+  // DIUMENGE 19 ABRIL - Arribada
+  { date: "2026-04-19", time: "08:45", title: "🛬 Arribada Barcelona T1 (Vol DL128 des de Nova York)", type: "arrive" },
+  { date: "2026-04-19", time: "09:30", title: "🏠 Trasllat aeroport → Blanes (Brico Kirin)", type: "arrive" },
 ];
 
 const TABS = ["🏠 Inici", "📋 CRM", "📅 Calendari", "🌉 Info SF", "💰 Pressupost", "📖 Diari", "📊 Avaluació"];
@@ -383,13 +395,6 @@ export default function App() {
     setTabPrivacy(updated);
     try { await window.storage.set("sf2-tabprivacy", JSON.stringify(updated), true); } catch (e) {}
   };
-
-  // Tabs: ocultar Documents a no-autoritzats, i pestanyes privades també
-  const visibleTabs = t.tabs.filter((_, i) => {
-    if (i === 7 && !canWrite) return false; // Documents sempre privat
-    if (tabPrivacy[i] && !canWrite) return false; // Pestanyes marcades com privades
-    return true;
-  });
 
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
@@ -2049,7 +2054,7 @@ function DiaryTab({ entries, setEntries, canWrite, t }) {
 
 // ─── DOCUMENTS (PRIVATE) ────────────────────────────────────
 function DocsTab({ docs, setDocs, t }) {
-  const [form, setForm] = useState({ type: "ESTA", person: PARTICIPANTS[0].name, name: "", notes: "", url: "", status: "Pendent ⏳" });
+  const [form, setForm] = useState({ type: "ESTA", persons: [PARTICIPANTS[0].name], name: "", notes: "", url: "", fileName: "", status: "Pendent ⏳" });
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [filterPerson, setFilterPerson] = useState("all");
@@ -2064,19 +2069,36 @@ function DocsTab({ docs, setDocs, t }) {
     "Caducat ❌": { bg: "#FEF2F2", color: "#991B1B", border: "#FECACA" },
   };
 
+  const toggleDocPerson = (name) => {
+    const cur = form.persons;
+    if (cur.includes(name)) { if (cur.length === 1) return; setForm({ ...form, persons: cur.filter(p => p !== name) }); }
+    else setForm({ ...form, persons: [...cur, name] });
+  };
+
   const add = () => {
     if (!form.name.trim()) return;
     if (editId) {
-      setDocs(docs.map(d => d.id === editId ? { ...d, ...form } : d));
+      setDocs(docs.map(d => d.id === editId ? { ...d, ...form, person: form.persons[0] } : d));
       setEditId(null);
     } else {
-      setDocs([...docs, { id: Date.now(), ...form }]);
+      // Si hi ha múltiples persones, crea una entrada per cadascuna
+      const newDocs = form.persons.map(person => ({
+        id: Date.now() + Math.random(),
+        ...form,
+        person,
+        shared: form.persons.length > 1,
+      }));
+      setDocs([...docs, ...newDocs]);
     }
-    setForm({ type: "ESTA", person: PARTICIPANTS[0].name, name: "", notes: "", url: "", status: "Pendent ⏳" });
+    setForm({ type: "ESTA", persons: [PARTICIPANTS[0].name], name: "", notes: "", url: "", fileName: "", status: "Pendent ⏳" });
     setOpen(false);
   };
 
-  const startEdit = (doc) => { setForm({ ...doc }); setEditId(doc.id); setOpen(true); };
+  const startEdit = (doc) => {
+    setForm({ ...doc, persons: [doc.person], fileName: doc.fileName || "" });
+    setEditId(doc.id);
+    setOpen(true);
+  };
 
   const filtered = docs.filter(d =>
     (filterPerson === "all" || d.person === filterPerson) &&
@@ -2085,7 +2107,7 @@ function DocsTab({ docs, setDocs, t }) {
 
   // Default ESTA entries if empty
   const defaultDocs = PARTICIPANTS.map((p, i) => ({
-    id: 9000 + i, type: "ESTA", person: p.name,
+    id: 9000 + i, type: "ESTA", person: p.name, persons: [p.name],
     name: `ESTA — ${p.name.split(" ")[0]}`,
     notes: "Cost: $21/persona. URL oficial: https://esta.cbp.dhs.gov · Validesa: 2 anys. Passaport requerit.",
     url: "https://esta.cbp.dhs.gov", status: "Pendent ⏳",
@@ -2101,7 +2123,7 @@ function DocsTab({ docs, setDocs, t }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 12 }}>
         <div className="section-title" style={{ marginBottom: 0 }}>{t.docsTitle}</div>
-        <button className="btn" onClick={() => { setOpen(!open); setEditId(null); setForm({ type: "ESTA", person: PARTICIPANTS[0].name, name: "", notes: "", url: "", status: "Pendent ⏳" }); }}>{t.addDoc}</button>
+        <button className="btn" onClick={() => { setOpen(!open); setEditId(null); setForm({ type: "ESTA", persons: [PARTICIPANTS[0].name], name: "", notes: "", url: "", fileName: "", status: "Pendent ⏳" }); }}>{t.addDoc}</button>
       </div>
 
       <div style={{ background: "#FFF7ED", border: "1px solid #FDBA74", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#92400E" }}>
@@ -2119,10 +2141,16 @@ function DocsTab({ docs, setDocs, t }) {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>{t.docPerson}</label>
-              <select className="select" style={{ width: "100%" }} value={form.person} onChange={e => setForm({ ...form, person: e.target.value })}>
-                {PARTICIPANTS.map(p => <option key={p.id}>{p.name}</option>)}
-              </select>
+              <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 6, fontWeight: 600 }}>{t.docPerson}</label>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+                <button onClick={() => setForm({ ...form, persons: PARTICIPANTS.map(p => p.name) })} style={{ fontSize: 10, background: "none", border: `1px solid ${C.border}`, borderRadius: 6, padding: "2px 7px", cursor: "pointer", color: C.muted }}>Tots</button>
+                {PARTICIPANTS.map(p => (
+                  <button key={p.id} onClick={() => toggleDocPerson(p.name)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 16, border: `1.5px solid ${form.persons.includes(p.name) ? p.color : C.border}`, background: form.persons.includes(p.name) ? `${p.color}18` : "white", color: form.persons.includes(p.name) ? p.color : C.muted, cursor: "pointer", fontSize: 11, fontWeight: form.persons.includes(p.name) ? 700 : 400, fontFamily: "DM Sans, sans-serif" }}>
+                    {p.emoji} {p.name.split(" ")[0]}
+                  </button>
+                ))}
+              </div>
+              {form.persons.length > 1 && <div style={{ fontSize: 11, color: C.teal }}>✓ Es crearà 1 entrada per cada participant seleccionat</div>}
             </div>
             <div>
               <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 4, fontWeight: 600 }}>Estat</label>
