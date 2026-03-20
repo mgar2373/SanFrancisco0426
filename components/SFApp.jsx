@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthProvider";
+import { supabase } from "../lib/supabase";
 import AuthModal from "./AuthModal";
 import AdminPanel from "./AdminPanel";
 
@@ -367,33 +368,87 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const t = T[lang];
 
+  // ── Càrrega inicial des de Supabase ──────────────────────
   useEffect(() => {
     const load = async () => {
       try {
-        const r1 = await window.storage.get("sf2-contacts", true); if (r1) setContacts(JSON.parse(r1.value));
-        const r2 = await window.storage.get("sf2-expenses", true); if (r2) setExpenses(JSON.parse(r2.value));
-        const r3 = await window.storage.get("sf2-diary", true); if (r3) setDiaryEntries(JSON.parse(r3.value));
-        const r4 = await window.storage.get("sf2-board", true); if (r4) setBoardNotes(JSON.parse(r4.value));
-        const r5 = await window.storage.get("sf2-docs", true); if (r5) setDocs(JSON.parse(r5.value));
-        const r6 = await window.storage.get("sf2-calevents", true); if (r6) setCalEvents(JSON.parse(r6.value));
-        const r7 = await window.storage.get("sf2-sfnotes", true); if (r7) setSfNotes(JSON.parse(r7.value));
-        const r8 = await window.storage.get("sf2-prevexp", true); if (r8) setPrevExpenses(JSON.parse(r8.value));
-        const r9 = await window.storage.get("sf2-tabprivacy", true); if (r9) setTabPrivacy(JSON.parse(r9.value));
-      } catch (e) {}
+        const { data, error } = await supabase.from("app_data").select("key, value");
+        if (error || !data) return;
+        const map = Object.fromEntries(data.map(r => [r.key, r.value]));
+        if (map["sf2-contacts"])   setContacts(map["sf2-contacts"]);
+        if (map["sf2-expenses"])   setExpenses(map["sf2-expenses"]);
+        if (map["sf2-diary"])      setDiaryEntries(map["sf2-diary"]);
+        if (map["sf2-board"])      setBoardNotes(map["sf2-board"]);
+        if (map["sf2-docs"])       setDocs(map["sf2-docs"]);
+        if (map["sf2-calevents"])  setCalEvents(map["sf2-calevents"]);
+        if (map["sf2-sfnotes"])    setSfNotes(map["sf2-sfnotes"]);
+        if (map["sf2-prevexp"])    setPrevExpenses(map["sf2-prevexp"]);
+        if (map["sf2-tabprivacy"]) setTabPrivacy(map["sf2-tabprivacy"]);
+      } catch (e) { console.error("Error carregant dades:", e); }
     };
     load();
   }, []);
 
+  // ── Subscripció Realtime: actualitza estat quan canvia qualsevol clau ──
+  useEffect(() => {
+    const SETTERS = {
+      "sf2-contacts":   setContacts,
+      "sf2-expenses":   setExpenses,
+      "sf2-diary":      setDiaryEntries,
+      "sf2-board":      setBoardNotes,
+      "sf2-docs":       setDocs,
+      "sf2-calevents":  setCalEvents,
+      "sf2-sfnotes":    setSfNotes,
+      "sf2-prevexp":    setPrevExpenses,
+      "sf2-tabprivacy": setTabPrivacy,
+    };
+    const channel = supabase
+      .channel("app_data_realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_data" }, (payload) => {
+        const row = payload.new;
+        if (!row?.key || row.value === undefined) return;
+        const setter = SETTERS[row.key];
+        if (setter) setter(row.value);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // ── Desa a Supabase (el Realtime propaga el canvi a la resta) ──
   const save = (key, setter) => async (data) => {
     setter(data);
     if (!canWrite) return;
-    try { await window.storage.set(key, JSON.stringify(data), true); } catch (e) {}
+    try {
+      let value = data;
+      // Si hi ha imatges base64 molt grans, substituir-les per la URL del Storage
+      const json = JSON.stringify(data);
+      if (json.length > 800_000) { // ~800 KB → límit prudent per a JSONB
+        if (Array.isArray(value)) {
+          value = value.map(item => {
+            const copy = { ...item };
+            if (copy.url?.startsWith("data:")) copy.url = "[fitxer-gran: puja'l al botó 📁]";
+            if (copy.image?.startsWith("data:")) copy.image = "[fitxer-gran: puja'l al botó 📁]";
+            return copy;
+          });
+        }
+        console.warn(`${key}: imatge base64 massa gran. Usa el botó de pujada de fitxers.`);
+      }
+      await supabase.from("app_data").upsert(
+        { key, value, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+    } catch (e) { console.error("Error guardant", key, e); }
   };
 
   const toggleTabPrivacy = async (i) => {
     const updated = tabPrivacy.map((v, idx) => idx === i ? !v : v);
     setTabPrivacy(updated);
-    try { await window.storage.set("sf2-tabprivacy", JSON.stringify(updated), true); } catch (e) {}
+    try {
+      await supabase.from("app_data").upsert(
+        { key: "sf2-tabprivacy", value: updated, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+    } catch (e) { console.error("Error guardant tabprivacy:", e); }
   };
 
   return (
@@ -636,9 +691,12 @@ function HomeTab({ t, canWrite }) {
   useEffect(() => {
     const track = async () => {
       try {
-        const r = await window.storage.get("sf2-visits", true);
-        const count = r ? parseInt(r.value) + 1 : 1;
-        await window.storage.set("sf2-visits", String(count), true);
+        const { data } = await supabase.from("app_data").select("value").eq("key", "sf2-visits").single();
+        const count = data ? (Number(data.value) || 0) + 1 : 1;
+        await supabase.from("app_data").upsert(
+          { key: "sf2-visits", value: count, updated_at: new Date().toISOString() },
+          { onConflict: "key" }
+        );
         setVisits(count);
       } catch(e) {}
     };
@@ -1280,10 +1338,26 @@ function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
   const [currency, setCurrency] = useState({ eur: "", usd: "" });
   const [noteText, setNoteText] = useState("");
   const [noteUrl, setNoteUrl] = useState("");
-  const [noteFile, setNoteFile] = useState(null);
+  const [noteFile, setNoteFile] = useState(null);   // ara és URL, no base64
+  const [noteFilePreview, setNoteFilePreview] = useState(null); // URL preview local
   const [noteColor, setNoteColor] = useState("#003DA5");
   const [notePublic, setNotePublic] = useState(true);
+  const [uploadingNote, setUploadingNote] = useState(false);
   const rate = 1.085;
+
+  const uploadNoteImage = async (file) => {
+    setUploadingNote(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `notes/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("documents").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(path);
+      return publicUrl;
+    } finally {
+      setUploadingNote(false);
+    }
+  };
 
   const practical = [
     { icon: "🕐", title: "Diferència horària", info: "San Francisco (PDT, abril) = Blanes (CEST) – 9 hores. Quan a Blanes són les 18h, a SF són les 9h del matí." },
@@ -1325,20 +1399,20 @@ function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
   };
   const tabLabels = { breakfast: "☀️ Esmorzar", lunch: "🍽️ Dinar", dinner: "🌙 Sopar", tourism: "🗺️ Turisme" };
 
-  const addNote = () => {
+  const addNote = async () => {
     if (!noteText.trim() && !noteFile && !noteUrl) return;
     const note = {
       id: Date.now(),
       text: noteText,
       url: noteUrl,
-      image: noteFile,
+      image: noteFile,   // ja és URL pública del Storage
       color: noteColor,
       isPublic: notePublic,
       author: "",
       date: new Date().toLocaleDateString("ca-ES"),
     };
     setSfNotes([note, ...sfNotes]);
-    setNoteText(""); setNoteUrl(""); setNoteFile(null);
+    setNoteText(""); setNoteUrl(""); setNoteFile(null); setNoteFilePreview(null);
   };
 
   const visibleNotes = sfNotes.filter(n => canWrite || n.isPublic);
@@ -1369,30 +1443,30 @@ function SFInfoTab({ canWrite, t, sfNotes, setSfNotes }) {
             <input className="input" placeholder="🔗 URL (opcional)" value={noteUrl} onChange={e => setNoteUrl(e.target.value)} style={{ marginBottom: 10 }} />
             {/* Foto */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600 }}>
-                📁 Afegir foto
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: uploadingNote ? "wait" : "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600, opacity: uploadingNote ? 0.7 : 1 }}>
+                {uploadingNote ? "⏳ Pujant..." : "📁 Afegir foto"}
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={async e => {
                   const file = e.target.files[0];
                   if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = ev => setNoteFile(ev.target.result);
-                  reader.readAsDataURL(file);
+                  setNoteFilePreview(URL.createObjectURL(file));
+                  try { const url = await uploadNoteImage(file); setNoteFile(url); }
+                  catch (err) { alert("Error pujant: " + err.message); setNoteFilePreview(null); }
                 }} />
               </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.green, fontWeight: 600 }}>
-                📸 Fer foto
-                <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => {
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: uploadingNote ? "wait" : "pointer", fontSize: 12, color: C.green, fontWeight: 600, opacity: uploadingNote ? 0.7 : 1 }}>
+                {uploadingNote ? "⏳ Pujant..." : "📸 Fer foto"}
+                <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={async e => {
                   const file = e.target.files[0];
                   if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = ev => setNoteFile(ev.target.result);
-                  reader.readAsDataURL(file);
+                  setNoteFilePreview(URL.createObjectURL(file));
+                  try { const url = await uploadNoteImage(file); setNoteFile(url); }
+                  catch (err) { alert("Error pujant: " + err.message); setNoteFilePreview(null); }
                 }} />
               </label>
-              {noteFile && (
+              {noteFilePreview && (
                 <>
-                  <img src={noteFile} alt="preview" style={{ height: 48, borderRadius: 6, border: `1px solid ${C.border}` }} />
-                  <button onClick={() => setNoteFile(null)} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
+                  <img src={noteFilePreview} alt="preview" style={{ height: 48, borderRadius: 6, border: `1px solid ${C.border}` }} />
+                  <button onClick={() => { setNoteFile(null); setNoteFilePreview(null); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
                 </>
               )}
             </div>
@@ -1890,7 +1964,23 @@ function DiaryTab({ entries, setEntries, canWrite, t }) {
   const [editId, setEditId] = useState(null);
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDay, setFilterDay] = useState("all");
+  const [uploadingDiary, setUploadingDiary] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const typeIcons = { text: "📝", photo: "📸", video: "🎥", link: "🔗" };
+
+  const uploadDiaryFile = async (file) => {
+    setUploadingDiary(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `diary/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("documents").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(path);
+      return publicUrl;
+    } finally {
+      setUploadingDiary(false);
+    }
+  };
 
   const tripDays = ["2026-04-10","2026-04-11","2026-04-12","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-18","2026-04-19"];
 
@@ -1959,45 +2049,47 @@ function DiaryTab({ entries, setEntries, canWrite, t }) {
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                 {/* Seleccionar des del dispositiu */}
-                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 13, color: C.erasmus, fontWeight: 600 }}>
-                  📁 Seleccionar arxiu
+                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: uploadingDiary ? "wait" : "pointer", fontSize: 13, color: C.erasmus, fontWeight: 600, opacity: uploadingDiary ? 0.7 : 1 }}>
+                  {uploadingDiary ? "⏳ Pujant..." : "📁 Seleccionar arxiu"}
                   <input type="file" accept={form.type === "photo" ? "image/*" : form.type === "video" ? "video/*" : "*/*"} style={{ display: "none" }}
-                    onChange={e => {
+                    onChange={async e => {
                       const file = e.target.files[0];
                       if (!file) return;
-                      if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB). Fes servir un URL extern."); return; }
-                      const reader = new FileReader();
-                      reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name });
-                      reader.readAsDataURL(file);
+                      setPreviewUrl(URL.createObjectURL(file));
+                      try {
+                        const url = await uploadDiaryFile(file);
+                        setForm({ ...form, url, fileName: file.name });
+                      } catch (err) { alert("Error pujant: " + err.message); setPreviewUrl(null); }
                     }} />
                 </label>
                 {/* Fer foto amb la càmera */}
                 {(form.type === "photo" || form.type === "video") && (
-                  <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 13, color: C.green, fontWeight: 600 }}>
-                    📸 Fer foto/vídeo
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: uploadingDiary ? "wait" : "pointer", fontSize: 13, color: C.green, fontWeight: 600, opacity: uploadingDiary ? 0.7 : 1 }}>
+                    {uploadingDiary ? "⏳ Pujant..." : "📸 Fer foto/vídeo"}
                     <input type="file" accept={form.type === "photo" ? "image/*" : "video/*"} capture="environment" style={{ display: "none" }}
-                      onChange={e => {
+                      onChange={async e => {
                         const file = e.target.files[0];
                         if (!file) return;
-                        if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB)."); return; }
-                        const reader = new FileReader();
-                        reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name });
-                        reader.readAsDataURL(file);
+                        setPreviewUrl(URL.createObjectURL(file));
+                        try {
+                          const url = await uploadDiaryFile(file);
+                          setForm({ ...form, url, fileName: file.name });
+                        } catch (err) { alert("Error pujant: " + err.message); setPreviewUrl(null); }
                       }} />
                   </label>
                 )}
                 {/* O bé URL manual */}
                 <span style={{ fontSize: 12, color: C.muted, alignSelf: "center" }}>o</span>
-                <input className="input" placeholder="URL extern (https://...)" value={form.url?.startsWith("data:") ? "" : (form.url || "")} onChange={e => setForm({ ...form, url: e.target.value, fileName: "" })} style={{ flex: 1, minWidth: 180 }} />
+                <input className="input" placeholder="URL extern (https://...)" value={form.url?.startsWith("data:") ? "" : (form.url || "")} onChange={e => { setForm({ ...form, url: e.target.value, fileName: "" }); setPreviewUrl(null); }} style={{ flex: 1, minWidth: 180 }} />
               </div>
               {/* Previsualització */}
-              {form.url?.startsWith("data:image") && (
+              {(previewUrl || form.url) && form.type === "photo" && (
                 <div style={{ position: "relative", display: "inline-block" }}>
-                  <img src={form.url} alt="preview" style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 8, border: `1px solid ${C.border}` }} />
-                  <button onClick={() => setForm({ ...form, url: "", fileName: "" })} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", border: "none", color: "white", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 12 }}>✕</button>
+                  <img src={previewUrl || form.url} alt="preview" style={{ maxHeight: 160, maxWidth: "100%", borderRadius: 8, border: `1px solid ${C.border}` }} />
+                  <button onClick={() => { setForm({ ...form, url: "", fileName: "" }); setPreviewUrl(null); }} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", border: "none", color: "white", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 12 }}>✕</button>
                 </div>
               )}
-              {form.fileName && !form.url?.startsWith("data:image") && (
+              {form.fileName && (
                 <div style={{ fontSize: 12, color: C.green, marginTop: 4 }}>✅ {form.fileName}</div>
               )}
             </div>
@@ -2059,6 +2151,22 @@ function DocsTab({ docs, setDocs, t }) {
   const [editId, setEditId] = useState(null);
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterType, setFilterType] = useState("all");
+  const [uploading, setUploading] = useState(false);
+
+  // Puja un fitxer a Supabase Storage i retorna la URL pública
+  const uploadFile = async (file) => {
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("documents").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(path);
+      return publicUrl;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const docTypes = t.docTypes;
   const statusOpts = ["Pendent ⏳", "En tràmit 🔄", "Aprovat ✅", "Caducat ❌"];
@@ -2105,13 +2213,39 @@ function DocsTab({ docs, setDocs, t }) {
     (filterType === "all" || d.type === filterType)
   );
 
-  // Default ESTA entries if empty
-  const defaultDocs = PARTICIPANTS.map((p, i) => ({
-    id: 9000 + i, type: "ESTA", person: p.name, persons: [p.name],
-    name: `ESTA — ${p.name.split(" ")[0]}`,
-    notes: "Cost: $21/persona. URL oficial: https://esta.cbp.dhs.gov · Validesa: 2 anys. Passaport requerit.",
-    url: "https://esta.cbp.dhs.gov", status: "Pendent ⏳",
-  }));
+  // Default ESTA entries if empty — dades reals tramitades
+  const defaultDocs = [
+    {
+      id: 9001, type: "ESTA", person: "Marissa García Martín", persons: ["Marissa García Martín"],
+      name: "ESTA — Marissa García Martín",
+      notes: "Núm. sol·licitud: 1312S5P66W404425 · Caducitat ESTA: 02/09/2028 · Passaport: PAX655722 (caducitat 18/09/2035) · Estat: AUTHORIZATION APPROVED ✅",
+      url: "https://esta.cbp.dhs.gov", status: "Aprovat ✅",
+    },
+    {
+      id: 9002, type: "ESTA", person: "Mònica Regi Pell", persons: ["Mònica Regi Pell"],
+      name: "ESTA — Mònica Regi Pell",
+      notes: "Núm. sol·licitud: 2Q1471229I10Z5F2 · Caducitat ESTA: 02/09/2028 · Passaport: PAT383420 (caducitat 26/03/2034) · Estat: AUTHORIZATION APPROVED ✅",
+      url: "https://esta.cbp.dhs.gov", status: "Aprovat ✅",
+    },
+    {
+      id: 9003, type: "ESTA", person: "Èrika Ramón Larios", persons: ["Èrika Ramón Larios"],
+      name: "ESTA — Èrika Ramón Larios",
+      notes: "Núm. sol·licitud: F3161H1Q9T324M3P · Caducitat ESTA: 02/09/2028 · Passaport: PAW300294 (caducitat 28/03/2030) · Estat: AUTHORIZATION APPROVED ✅",
+      url: "https://esta.cbp.dhs.gov", status: "Aprovat ✅",
+    },
+    {
+      id: 9004, type: "ESTA", person: "Eric Rodriguez González", persons: ["Eric Rodriguez González"],
+      name: "ESTA — Eric Rodriguez González",
+      notes: "Núm. sol·licitud: 17O127S582Z0029O · Caducitat ESTA: 05/23/2027 · Passaport: PAN786830 (caducitat 23/05/2027) ⚠️ Passaport i ESTA caduca el mateix dia — renovar passaport si cal · Estat: AUTHORIZATION APPROVED ✅",
+      url: "https://esta.cbp.dhs.gov", status: "Aprovat ✅",
+    },
+    {
+      id: 9005, type: "ESTA", person: "Andrea Battaglia Rayo", persons: ["Andrea Battaglia Rayo"],
+      name: "ESTA — Andrea Battaglia Rayo",
+      notes: "Núm. sol·licitud: 1228353S90809428 · Caducitat ESTA: 02/09/2028 · Passaport: PAS000954 (caducitat 10/10/2028) · Estat: AUTHORIZATION APPROVED ✅",
+      url: "https://esta.cbp.dhs.gov", status: "Aprovat ✅",
+    },
+  ];
 
   const allDocs = docs.length === 0 ? defaultDocs : docs;
   const filteredAll = allDocs.filter(d =>
@@ -2166,39 +2300,41 @@ function DocsTab({ docs, setDocs, t }) {
           <div style={{ marginBottom: 10 }}>
             <label style={{ fontSize: 11, color: C.muted, display: "block", marginBottom: 6, fontWeight: 600 }}>Arxiu o URL</label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600, whiteSpace: "nowrap" }}>
-                📁 Seleccionar arxiu
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: C.erasmusLight, border: `1.5px solid ${C.erasmus}44`, borderRadius: 8, cursor: uploading ? "wait" : "pointer", fontSize: 12, color: C.erasmus, fontWeight: 600, whiteSpace: "nowrap", opacity: uploading ? 0.7 : 1 }}>
+                {uploading ? "⏳ Pujant..." : "📁 Seleccionar arxiu"}
                 <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,image/*" style={{ display: "none" }}
-                  onChange={e => {
+                  onChange={async e => {
                     const file = e.target.files[0];
                     if (!file) return;
-                    if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB). Fes servir un URL extern."); return; }
-                    const reader = new FileReader();
-                    reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name, name: form.name || file.name });
-                    reader.readAsDataURL(file);
+                    if (file.size > 10 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 10MB)."); return; }
+                    try {
+                      const url = await uploadFile(file);
+                      setForm({ ...form, url, fileName: file.name, name: form.name || file.name });
+                    } catch (err) { alert("Error pujant el fitxer: " + err.message); }
                   }} />
               </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: "pointer", fontSize: 12, color: C.green, fontWeight: 600, whiteSpace: "nowrap" }}>
-                📸 Fer foto
+              <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", background: "#F0FDF4", border: `1.5px solid ${C.green}44`, borderRadius: 8, cursor: uploading ? "wait" : "pointer", fontSize: 12, color: C.green, fontWeight: 600, whiteSpace: "nowrap", opacity: uploading ? 0.7 : 1 }}>
+                {uploading ? "⏳ Pujant..." : "📸 Fer foto"}
                 <input type="file" accept="image/*" capture="environment" style={{ display: "none" }}
-                  onChange={e => {
+                  onChange={async e => {
                     const file = e.target.files[0];
                     if (!file) return;
-                    if (file.size > 4 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 4MB)."); return; }
-                    const reader = new FileReader();
-                    reader.onload = ev => setForm({ ...form, url: ev.target.result, fileName: file.name, name: form.name || file.name });
-                    reader.readAsDataURL(file);
+                    if (file.size > 10 * 1024 * 1024) { alert("El fitxer és massa gran (màx. 10MB)."); return; }
+                    try {
+                      const url = await uploadFile(file);
+                      setForm({ ...form, url, fileName: file.name, name: form.name || file.name });
+                    } catch (err) { alert("Error pujant la foto: " + err.message); }
                   }} />
               </label>
               <input className="input" placeholder="o URL extern (https://...)" value={form.url?.startsWith("data:") ? "" : (form.url || "")} onChange={e => setForm({ ...form, url: e.target.value, fileName: "" })} style={{ flex: 1, minWidth: 160 }} />
             </div>
-            {form.url?.startsWith("data:image") && (
+            {form.url && !form.url.startsWith("data:") && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(form.url) && (
               <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
                 <img src={form.url} alt="preview" style={{ maxHeight: 100, maxWidth: "100%", borderRadius: 6, border: `1px solid ${C.border}` }} />
                 <button onClick={() => setForm({ ...form, url: "", fileName: "" })} style={{ position: "absolute", top: 2, right: 2, background: "rgba(0,0,0,0.5)", border: "none", color: "white", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: 11 }}>✕</button>
               </div>
             )}
-            {form.fileName && !form.url?.startsWith("data:image") && (
+            {form.fileName && (
               <div style={{ fontSize: 12, color: C.green, marginTop: 4 }}>✅ {form.fileName}</div>
             )}
           </div>
@@ -2281,7 +2417,12 @@ function EvalTab({ canWrite }) {
   const [allResults, setAllResults] = useState({});
 
   useEffect(() => {
-    const load = async () => { try { const r = await window.storage.get("sf2-eval", true); if (r) setAllResults(JSON.parse(r.value)); } catch (e) {} };
+    const load = async () => {
+      try {
+        const { data } = await supabase.from("app_data").select("value").eq("key", "sf2-eval").single();
+        if (data?.value) setAllResults(data.value);
+      } catch (e) {}
+    };
     load();
   }, []);
 
@@ -2311,7 +2452,12 @@ function EvalTab({ canWrite }) {
     if (Object.keys(answers).length < questions.length) { alert("Respon totes les preguntes."); return; }
     const updated = { ...allResults, [active]: { answers, openText, date: new Date().toISOString() } };
     setAllResults(updated);
-    try { await window.storage.set("sf2-eval", JSON.stringify(updated), true); } catch (e) {}
+    try {
+      await supabase.from("app_data").upsert(
+        { key: "sf2-eval", value: updated, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+    } catch (e) { console.error("Error guardant avaluació:", e); }
     setDone(true);
     alert(`✅ Avaluació de ${active.split(" ")[0]} guardada!\nEn una versió amb backend, s'enviaria automàticament a mgar2373@xtec.cat`);
   };
