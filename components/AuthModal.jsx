@@ -12,9 +12,10 @@ const C = {
   red: "#DC2626",
 };
 
-export default function AuthModal({ onClose }) {
-  const INVITE_CODE = "Serrallarga2026"; // Canvia aquest codi quan vulguis
+const DEFAULT_PASSWORD = "Sanfrancisco2026";
+const INVITE_CODE = "Serrallarga2026";
 
+export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState("login"); // login | register | pending
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,10 +35,11 @@ export default function AuthModal({ onClose }) {
 
   const handleRegister = async () => {
     if (!name.trim()) { setError("Introdueix el teu nom."); return; }
-    if (password.length < 6) { setError("La contrasenya ha de tenir mínim 6 caràcters."); return; }
-    if (inviteCode !== INVITE_CODE) { setError("Codi d'invitació incorrecte. Contacta amb l'administradora per obtenir-lo."); return; }
+    if (!email.trim()) { setError("Introdueix el teu email."); return; }
+    if (inviteCode !== INVITE_CODE) { setError("Codi d'invitació incorrecte. Contacta amb mgar2373@xtec.cat per obtenir-lo."); return; }
     setLoading(true); setError("");
-    const err = await signUp(email, password, name);
+    // Registre sempre amb la contrasenya per defecte
+    const err = await signUp(email, DEFAULT_PASSWORD, name);
     setLoading(false);
     if (err) setError(err.message);
     else setMode("pending");
@@ -61,10 +63,13 @@ export default function AuthModal({ onClose }) {
         {mode === "pending" ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📬</div>
-            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 20 }}>
+            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 }}>
               La teva sol·licitud ha estat enviada a l'administradora.<br/>
-              Rebràs un email quan el teu accés sigui aprovat.<br/>
-              <strong style={{ color: C.text }}>Normalment en menys de 24h.</strong>
+              Quan siguis aprovat/da, podràs entrar amb:
+            </div>
+            <div style={{ background: C.erasmusLight, borderRadius: 8, padding: "12px 16px", marginBottom: 20, fontSize: 13 }}>
+              <div><strong>Email:</strong> {email}</div>
+              <div><strong>Contrasenya:</strong> Sanfrancisco2026</div>
             </div>
             <button onClick={onClose} style={{ background: C.erasmus, color: "white", border: "none", borderRadius: 8, padding: "10px 24px", cursor: "pointer", fontWeight: 700, fontSize: 14, fontFamily: "inherit" }}>Tancar</button>
           </div>
@@ -80,15 +85,17 @@ export default function AuthModal({ onClose }) {
               <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nom@exemple.com" style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
             </div>
-            <div style={{ marginBottom: mode === "register" ? 14 : 20 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Contrasenya</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínim 6 caràcters" onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleRegister())} style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
-            </div>
+            {mode === "login" && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Contrasenya</label>
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Sanfrancisco2026" onKeyDown={e => e.key === "Enter" && handleLogin()} style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
+              </div>
+            )}
             {mode === "register" && (
               <div style={{ marginBottom: 20 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>🔑 Codi d'invitació</label>
-                <input value={inviteCode} onChange={e => setInviteCode(e.target.value)} placeholder="Demana'l a l'administradora" style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
-                <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Necessites un codi per registrar-te. Contacta amb mgar2373@xtec.cat</div>
+                <input value={inviteCode} onChange={e => setInviteCode(e.target.value)} placeholder="Demana'l a l'administradora" onKeyDown={e => e.key === "Enter" && handleRegister()} style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }} />
+                <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Contacta amb mgar2373@xtec.cat per obtenir el codi.</div>
               </div>
             )}
 
@@ -97,6 +104,12 @@ export default function AuthModal({ onClose }) {
             <button onClick={mode === "login" ? handleLogin : handleRegister} disabled={loading} style={{ width: "100%", background: C.erasmus, color: "white", border: "none", borderRadius: 8, padding: "12px", fontWeight: 700, fontSize: 15, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, fontFamily: "inherit", marginBottom: 14 }}>
               {loading ? "..." : mode === "login" ? "Entrar" : "Sol·licitar accés"}
             </button>
+
+            {mode === "login" && (
+              <div style={{ background: C.erasmusLight, borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: C.muted, textAlign: "center" }}>
+                💡 Contrasenya per defecte: <strong style={{ color: C.erasmus }}>Sanfrancisco2026</strong>
+              </div>
+            )}
 
             <div style={{ textAlign: "center", fontSize: 13, color: C.muted }}>
               {mode === "login" ? (
